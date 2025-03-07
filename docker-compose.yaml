@@ -1,0 +1,14 @@
+services:
+  mysql:
+    container_name: mysql_db
+    image: mysql:latest
+    ports:
+      - ${MYSQL_PORT}:${MYSQL_PORT}
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    volumes:
+      - capstone-data:${PATH_VOLUME}
+
+volumes:
+  capstone-data:
