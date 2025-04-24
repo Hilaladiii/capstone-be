@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
 import { CreateLecturerDto } from './dto/create-lecturer.dto';
 import * as bcryptjs from 'bcryptjs';
@@ -69,6 +73,31 @@ export class LecturerService {
         fullname: newUser.fullname,
         nip: newLecturer.nip,
       };
+    });
+  }
+
+  async connectStudentSupervisor(nip: string, nim: string) {
+    const student = await this.prismaService.student.findUnique({
+      where: {
+        nim,
+      },
+    });
+    const lecturer = await this.prismaService.lecturer.findUnique({
+      where: {
+        nip,
+      },
+    });
+
+    if (!student || !lecturer)
+      throw new NotFoundException('Student or lecturer not found');
+
+    return await this.prismaService.student.update({
+      where: {
+        nim: student.nim,
+      },
+      data: {
+        supervisor_nip: lecturer.nip,
+      },
     });
   }
 }
