@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+
+model User{
+  user_id String @id @default(uuid())
+  email String @unique
+  fullname String 
+  username String
+  password String  
+
+  student Student?
+  lecturer Lecturer?
+  academic Academic?
+
+  userRoles UserRole[]  
+
+
+
+  @@map("users")
+}
+
+model UserRole{
+  user_id String 
+  role_id String
+
+  user User @relation(fields: [user_id],references: [user_id])
+  role Role @relation(fields: [role_id],references: [role_id])
+
+  @@id([user_id,role_id])
+  @@map("user_roles")
+}
+
+model Role{
+  role_id String @id @default(uuid())
+  role_name String
+  
+  userRoles UserRole[]
+
+  @@map("roles")
+}
+
+model Student{
+  nim String @id 
+  sks Int @db.UnsignedInt
+  year Int @db.UnsignedInt
+
+  user_id String @unique
+  user User @relation(fields: [user_id], references: [user_id])
+
+  supervisor_nip String? 
+  lecturer Lecturer? @relation(fields: [supervisor_nip],references: [nip])
+  
+  
+  logbooks Logbook[]
+
+
+  @@map("students")
+}
+
+model Lecturer{
+  nip String @id 
+
+  user_id String @unique
+  user User @relation(fields: [user_id], references: [user_id])
+
+  students Student[]
+
+  @@map("lecturers")
+}
+
+model Academic{
+  nip String @id 
+
+  user_id String @unique
+  user User @relation(fields: [user_id], references: [user_id])
+
+  @@map("academics")
+}
+
+
+model Logbook{
+  logbook_id String @id @default(uuid())
+  description String
+  imageUrl String
+  created_at DateTime @default(now())
+
+  nim String  
+  student Student @relation(fields: [nim],references: [nim])
+
+
+  @@map("logbooks")
+}
