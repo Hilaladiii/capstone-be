@@ -36,4 +36,18 @@ export class SupabaseService {
       throw new InternalServerErrorException(error.message);
     }
   }
+
+  async delete(path: string, bucket: string): Promise<void> {
+    try {
+      const { error } = await this.supabaseClient.storage
+        .from(bucket)
+        .remove([path]);
+
+      if (error) {
+        throw new InternalServerErrorException();
+      }
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
 }
