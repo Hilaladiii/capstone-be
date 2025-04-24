@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Param,
   Post,
   Put,
@@ -40,6 +41,22 @@ export class LogbookController {
       file,
       file.originalname,
     );
+  }
+
+  @Get('student')
+  @Message('Success get student logbooks')
+  @Roles(Role.STUDENT)
+  @UseGuards(JwtGuard, RoleGuard)
+  async getStudentLogbooks(@GetCurrentUser('nim') nim: string) {
+    return await this.logbookService.getStudentLogbooks(nim);
+  }
+
+  @Get('lecturer')
+  @Message('Success get student logbooks')
+  @Roles(Role.LECTURER)
+  @UseGuards(JwtGuard, RoleGuard)
+  async getSupervisorStudentLogbooks(@GetCurrentUser('nip') nip: string) {
+    return await this.logbookService.getSupervisorStudentLogbooks(nip);
   }
 
   @Delete('delete/:id')

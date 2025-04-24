@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { UpdateLogbookDto } from './dto/update-logbook.dto';
+import { Logbook } from '@prisma/client';
 
 @Injectable()
 export class LogbookService {
@@ -82,5 +83,37 @@ export class LogbookService {
         logbook_id,
       },
     });
+  }
+
+  async getStudentLogbooks(nim: string): Promise<Logbook[]> {
+    const logbooks = await this.prismaService.logbook.findMany({
+      where: {
+        student: {
+          nim,
+        },
+      },
+    });
+
+    if (logbooks.length === 0)
+      throw new NotFoundException('logbooks not found');
+
+    return logbooks;
+  }
+
+  async getSupervisorStudentLogbooks(nip: string): Promise<Logbook[]> {
+    const logbooks = await this.prismaService.logbook.findMany({
+      where: {
+        student: {
+          lecturer: {
+            nip,
+          },
+        },
+      },
+    });
+
+    if (logbooks.length === 0)
+      throw new NotFoundException('logbooks not found');
+
+    return logbooks;
   }
 }
