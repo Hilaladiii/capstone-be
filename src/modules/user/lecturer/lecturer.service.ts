@@ -81,14 +81,23 @@ export class LecturerService {
       where: {
         nim,
       },
+      include: {
+        lecturer: true,
+      },
     });
+
+    if (student?.lecturer.nip === nip)
+      throw new BadRequestException(
+        'Student already connected with supervisor',
+      );
+
     const lecturer = await this.prismaService.lecturer.findUnique({
       where: {
         nip,
       },
     });
 
-    if (!student || !lecturer)
+    if (!student?.nim || !lecturer?.nip)
       throw new NotFoundException('Student or lecturer not found');
 
     return await this.prismaService.student.update({
