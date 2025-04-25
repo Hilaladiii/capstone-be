@@ -3,10 +3,14 @@ import { PrismaService } from 'src/modules/prisma/prisma.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import * as bcryptjs from 'bcryptjs';
 import { Role } from 'src/commons/types/role.type';
+import { RoleService } from '../role/role.service';
 
 @Injectable()
 export class StudentService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private roleService: RoleService,
+  ) {}
 
   async create(createStudentDto: CreateStudentDto) {
     const existingUser = await this.prismaService.user.findFirst({
@@ -54,9 +58,7 @@ export class StudentService {
         },
       });
 
-      const roleStudent = (await tx.role.findMany()).find(
-        (role) => role.role_name == Role.STUDENT,
-      );
+      const roleStudent = await this.roleService.getRoleByName(Role.STUDENT);
 
       await tx.userRole.create({
         data: {

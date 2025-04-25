@@ -7,10 +7,14 @@ import { PrismaService } from 'src/modules/prisma/prisma.service';
 import { CreateLecturerDto } from './dto/create-lecturer.dto';
 import * as bcryptjs from 'bcryptjs';
 import { Role } from 'src/commons/types/role.type';
+import { RoleService } from '../role/role.service';
 
 @Injectable()
 export class LecturerService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private roleService: RoleService,
+  ) {}
 
   async create(createLecturerDto: CreateLecturerDto) {
     const existingUser = await this.prismaService.user.findFirst({
@@ -56,9 +60,7 @@ export class LecturerService {
         },
       });
 
-      const roleLecturer = (await tx.role.findMany()).find(
-        (role) => role.role_name == Role.LECTURER,
-      );
+      const roleLecturer = await this.roleService.getRoleByName(Role.LECTURER);
 
       await tx.userRole.create({
         data: {
