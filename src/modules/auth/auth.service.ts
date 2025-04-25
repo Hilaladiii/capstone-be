@@ -33,9 +33,21 @@ export class AuthService {
             },
           },
         },
-        student: true,
-        academic: true,
-        lecturer: true,
+        student: {
+          select: {
+            nim: true,
+          },
+        },
+        academic: {
+          select: {
+            nip: true,
+          },
+        },
+        lecturer: {
+          select: {
+            nip: true,
+          },
+        },
       },
     });
 
