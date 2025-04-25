@@ -2,11 +2,9 @@ import { Body, Controller, Param, Post, UseGuards } from '@nestjs/common';
 import { CreateLecturerDto } from './dto/create-lecturer.dto';
 import { LecturerService } from './lecturer.service';
 import { Message } from 'src/commons/decorators/message.decorator';
-import { JwtGuard } from 'src/providers/guards/jwt.guard';
-import { Roles } from 'src/commons/decorators/role.decorator';
 import { Role } from 'src/commons/types/role.type';
-import { RoleGuard } from 'src/providers/guards/role.guard';
 import { ConnectSupervisorDto } from './dto/connect-supervisor.dto';
+import { Auth } from 'src/commons/decorators/auth.decorator';
 
 @Controller('user/lecturer')
 export class LecturerController {
@@ -20,8 +18,7 @@ export class LecturerController {
 
   @Post('student/:nim/supervisor')
   @Message('Success connect supervisor with student')
-  @Roles(Role.HEAD_LECTURER)
-  @UseGuards(JwtGuard, RoleGuard)
+  @Auth(Role.HEAD_LECTURER)
   async connectSupervisorStudent(
     @Param('nim') nim: string,
     @Body() { nip }: ConnectSupervisorDto,

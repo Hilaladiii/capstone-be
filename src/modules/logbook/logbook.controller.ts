@@ -14,12 +14,10 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateLogbookDto } from './dto/create-logbook.dto';
 import { LogbookService } from './logbook.service';
 import { Message } from 'src/commons/decorators/message.decorator';
-import { JwtGuard } from 'src/providers/guards/jwt.guard';
-import { RoleGuard } from 'src/providers/guards/role.guard';
-import { Roles } from 'src/commons/decorators/role.decorator';
 import { Role } from 'src/commons/types/role.type';
 import { GetCurrentUser } from 'src/commons/decorators/get-current-user.decorator';
 import { UpdateLogbookDto } from './dto/update-logbook.dto';
+import { Auth } from 'src/commons/decorators/auth.decorator';
 
 @Controller('logbook')
 export class LogbookController {
@@ -27,8 +25,7 @@ export class LogbookController {
 
   @Post('create')
   @Message('Success create logbook')
-  @Roles(Role.STUDENT)
-  @UseGuards(JwtGuard, RoleGuard)
+  @Auth(Role.STUDENT)
   @UseInterceptors(FileInterceptor('file'))
   async create(
     @Body() createLogbookDto: CreateLogbookDto,
@@ -45,32 +42,28 @@ export class LogbookController {
 
   @Get('student')
   @Message('Success get student logbooks')
-  @Roles(Role.STUDENT)
-  @UseGuards(JwtGuard, RoleGuard)
+  @Auth(Role.STUDENT)
   async getStudentLogbooks(@GetCurrentUser('nim') nim: string) {
     return await this.logbookService.getStudentLogbooks(nim);
   }
 
   @Get('lecturer')
   @Message('Success get student logbooks')
-  @Roles(Role.LECTURER)
-  @UseGuards(JwtGuard, RoleGuard)
+  @Auth(Role.LECTURER)
   async getSupervisorStudentLogbooks(@GetCurrentUser('nip') nip: string) {
     return await this.logbookService.getSupervisorStudentLogbooks(nip);
   }
 
   @Delete('delete/:id')
   @Message('Success delete logbook')
-  @Roles(Role.STUDENT)
-  @UseGuards(JwtGuard, RoleGuard)
+  @Auth(Role.STUDENT)
   async delete(@Param('id') id: string) {
     return await this.logbookService.delete(id);
   }
 
   @Put('update/:id')
   @Message('Success udpate logbook')
-  @Roles(Role.STUDENT)
-  @UseGuards(JwtGuard, RoleGuard)
+  @Auth(Role.STUDENT)
   @UseInterceptors(FileInterceptor('file'))
   async update(
     @Param('id') id: string,
