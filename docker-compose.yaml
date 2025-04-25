@@ -1,4 +1,15 @@
 services:
+  server:
+    build:
+      context: .
+    ports:
+      - ${APP_PORT}:${APP_PORT}
+    env_file: .env
+    depends_on:
+      - mysql
+    networks:
+      - capstone-network
+
   mysql:
     container_name: mysql_db
     image: mysql:latest
@@ -9,6 +20,12 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
     volumes:
       - capstone-data:${PATH_VOLUME}
+    networks:
+      - capstone-network
 
 volumes:
   capstone-data:
+
+networks:
+  capstone-network:
+    driver: bridge
