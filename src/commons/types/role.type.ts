@@ -4,6 +4,7 @@ export enum Role {
   HEAD_LECTURER = 'HEAD_LECTURER',
   SUPERVISOR = 'SUPERVISOR',
   LECTURER = 'LECTURER',
+  ADMIN = 'ADMIN',
 }
 
 export type RoleType = {
