@@ -15,12 +15,7 @@ export class LogbookService {
     private supabaseService: SupabaseService,
   ) {}
 
-  async create(
-    nim: string,
-    description: string,
-    image: Express.Multer.File,
-    imageOriginalName: string,
-  ) {
+  async create(nim: string, description: string, image: Express.Multer.File) {
     const student = await this.prismaService.student.findUnique({
       where: {
         nim,
@@ -35,7 +30,7 @@ export class LogbookService {
     return await this.prismaService.logbook.create({
       data: {
         description,
-        imageOriginalName,
+        imageOriginalName: image.originalname,
         imageUrl: publicUrl,
         student: {
           connect: {

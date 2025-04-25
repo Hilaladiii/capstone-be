@@ -36,7 +36,6 @@ export class LogbookController {
       nim,
       createLogbookDto.description,
       file,
-      file.originalname,
     );
   }
 
