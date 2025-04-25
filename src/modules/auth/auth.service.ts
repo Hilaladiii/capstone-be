@@ -17,10 +17,11 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async login({ email, password }: LoginDto): Promise<string> {
-    const user = await this.prismaService.user.findUnique({
+  async login({ email, nip, nim, password }: LoginDto): Promise<string> {
+    const userInput = this.checkInputLoginCondition(email, nim, nip);
+    const user = await this.prismaService.user.findFirst({
       where: {
-        email,
+        OR: userInput,
       },
       include: {
         userRoles: {
@@ -94,5 +95,20 @@ export class AuthService {
 
   async signAcademicJwt(claim: JwtAcademicClaim) {
     return this.jwtService.sign(claim);
+  }
+
+  private checkInputLoginCondition(email?: string, nim?: string, nip?: string) {
+    const condition = [];
+    if (email) condition.push({ email });
+    if (nim) condition.push({ student: { nim } });
+    if (nip) {
+      condition.push({ lecturer: { nip } });
+      condition.push({ academic: { nip } });
+    }
+
+    if (condition.length == 0)
+      throw new BadRequestException('Please provide valid login credentials');
+
+    return condition;
   }
 }
