@@ -58,6 +58,8 @@ export class LogbookService {
       updateData.imageOriginalName = file.originalname;
     }
 
+    updateData.update_at = new Date();
+
     return await this.prismaService.logbook.update({
       where: {
         logbook_id,

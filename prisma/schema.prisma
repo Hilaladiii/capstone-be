@@ -91,6 +91,7 @@ model Logbook{
   imageUrl String
   imageOriginalName String
   created_at DateTime @default(now())
+  update_at DateTime?
 
   nim String  
   student Student @relation(fields: [nim],references: [nim])
