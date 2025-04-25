@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { UpdateLogbookDto } from './dto/update-logbook.dto';
@@ -17,6 +21,15 @@ export class LogbookService {
     image: Express.Multer.File,
     imageOriginalName: string,
   ) {
+    const student = await this.prismaService.student.findUnique({
+      where: {
+        nim,
+      },
+    });
+
+    if (!student)
+      throw new BadRequestException('Student with this nim not registered');
+
     const { publicUrl } = await this.supabaseService.upload(image, 'logbook');
 
     return await this.prismaService.logbook.create({
