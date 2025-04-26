@@ -88,7 +88,7 @@ export class LecturerService {
       },
     });
 
-    if (student?.lecturer.nip === nip)
+    if (student?.lecturer?.nip === nip)
       throw new BadRequestException(
         'Student already connected with supervisor',
       );
