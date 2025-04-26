@@ -8,7 +8,6 @@ export class AcademicController {
   constructor(private academicService: AcademicService) {}
 
   @Post('register')
-  @HttpCode(HttpStatus.OK)
   @Message('Success register your account')
   async create(@Body() createAcademicDto: CreateAcademicDto) {
     return await this.academicService.create(createAcademicDto);
