@@ -1,23 +1,12 @@
-import { INestApplication, ValidationPipe } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import { AppModule } from 'src/app.module';
-import { loginHelper } from './auth.helper';
-import { HttpExceptionFilter } from 'src/commons/filters/http-exception.filter';
+import { INestApplication } from '@nestjs/common';
+import { loginHelper } from 'test/helper';
+import { createTestApp } from 'test/setup.e2e';
 
 describe('Auth e2e', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(
-      new ValidationPipe({ whitelist: true, transform: true }),
-    );
-    app.useGlobalFilters(new HttpExceptionFilter());
-    await app.init();
+    app = await createTestApp();
   });
 
   afterAll(async () => {
@@ -31,7 +20,7 @@ describe('Auth e2e', () => {
         password: 'student123',
       });
       expect(res.status).toBe(200);
-      expect(res.body.token).toBeDefined();
+      expect(res.body.data.token).toBeDefined();
     });
 
     it('should return 400 when user not registered', async () => {
