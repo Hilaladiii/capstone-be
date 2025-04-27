@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -31,6 +32,7 @@ export class LogbookController {
     @GetCurrentUser('nim') nim: string,
     @UploadedFile() file: Express.Multer.File,
   ) {
+    if (!file) throw new BadRequestException('File is required');
     return await this.logbookService.create(
       nim,
       createLogbookDto.description,
@@ -60,7 +62,7 @@ export class LogbookController {
   }
 
   @Put('update/:id')
-  @Message('Success udpate logbook')
+  @Message('Success update logbook')
   @Auth(Role.STUDENT)
   @UseInterceptors(FileInterceptor('file'))
   async update(
@@ -68,6 +70,8 @@ export class LogbookController {
     @Body() updateLogbookDto: UpdateLogbookDto,
     @UploadedFile() file?: Express.Multer.File,
   ) {
+    if (!updateLogbookDto?.description && !file)
+      throw new BadRequestException('Description or file must be provided');
     return await this.logbookService.update(id, updateLogbookDto, file);
   }
 }
