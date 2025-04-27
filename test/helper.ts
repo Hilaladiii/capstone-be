@@ -47,3 +47,8 @@ export const STUDENT_TEST_PAYLOAD = {
   sks: 12,
   year: 2020,
 };
+
+export const LOGBOOK_TEST_PAYLOAD = {
+  description: 'logbook testing description',
+  file: '../assets/logbooktest.jpg',
+};
