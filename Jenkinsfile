@@ -17,9 +17,9 @@ pipeline{
             file(credentialsId : "credential-capstone-test",variable:"ENV_TEST")
           ]){
             script {
-              sh """
+              sh"""
                 cp $ENV_TEST .env.test
-                docker compose -f docker-compose.test.yaml up --abort-on-container-exit --exit-code-from server
+                docker compose --env-file .env.test -f docker-compose.test.yaml up --abort-on-container-exit --exit-code-from server
                 docker compose -f docker-compose.test.yaml down
               """       
             }
@@ -36,7 +36,7 @@ pipeline{
                 sh """                 
                  cp $ENV .env
                  docker compose down
-                 docker compose up -d
+                 docker compose --env-file .env up -d
                 """
               }
               catch(Exception e){
