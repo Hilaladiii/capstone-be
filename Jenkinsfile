@@ -7,7 +7,9 @@ pipeline{
         }
       }
       stage("Testing"){
-        sh "npm run test:e2e"       
+        steps{
+          sh "npm run test:e2e"       
+        }
       }
       stage("Deploying"){
         steps{
