@@ -1,10 +1,20 @@
 pipeline{
-    agent any
+    agent {
+      docker{
+        image : node:20
+        args '-v /var/run/docker.sock:/var/run/docker.sock' 
+      }
+    }
     stages{
       stage("checkout")   {
         steps{
             checkout scm
         }
+      }
+      stage("Install dependencies") {
+          steps {
+              sh "npm ci"
+          }
       }
       stage("Testing"){
         steps{
