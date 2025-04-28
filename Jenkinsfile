@@ -5,6 +5,11 @@ pipeline{
         args '-v /var/run/docker.sock:/var/run/docker.sock' 
       }
     }
+
+    options{
+      skipDefaultCheckout(true)
+    }
+
     stages{
       stage("checkout")   {
         steps{
@@ -13,7 +18,7 @@ pipeline{
       }
       stage("Install dependencies") {
           steps {
-              sh "npm ci"
+              sh "npm ci --no-optional --no-audit --prefer-offline || npm install --no-optional --no-audit --prefer-offline"
           }
       }
       stage("Testing"){
