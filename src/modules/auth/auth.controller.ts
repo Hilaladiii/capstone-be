@@ -13,7 +13,7 @@ export class AuthController {
   @Message('Success login into your account')
   @Throttle({
     default: {
-      limit: 3,
+      limit: 5,
       ttl: 10000,
     },
   })
