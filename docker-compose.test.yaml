@@ -2,7 +2,7 @@ services:
   server_test:
     build:
       context: .
-    command: sh -c "npx prisma generate && npm run test:e2e"
+    command: sh -c "npx prisma generate && npx prisma db push && npm run test:e2e"
     env_file: .env.test
     depends_on:
       - mysql_test
