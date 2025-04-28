@@ -10,37 +10,20 @@ pipeline{
         steps{
             checkout scm
         }
-      }
-       stage("Start Dependencies") {
-        steps{          
-          withCredentials([
-            file(credentialsId: "credential-capstone", variable: "ENV")
-          ]){
-            script{
-              sh "cp \$ENV .env" 
-              sh "docker compose up -d mysql" 
-              sh "sleep 10" 
-            }
-          }
-        }
-      }
-      stage("Install dependencies") {
-          steps{
-          sh "rm -rf node_modules || true"
-          sh "npm cache clean --force || true"
-          sh """
-            npm config set registry https://registry.npmjs.org/
-            npm config set fetch-retries 3
-            npm install --no-fund --legacy-peer-deps
-                      
-            npx prisma generate
-          """
-        }
-
-      }
+      }          
       stage("Testing"){
         steps{
-          sh "npm run test:e2e"       
+          withCredentials([
+            file(credentialsId : "credential-capstone-test",variable:"ENV_TEST")
+          ]){
+            script {
+              sh """
+                cp ${ENV_TEST} .env.test
+                docker compose -f docker-compose.test.yaml up --abort-on-container-exit --exit-code-from server
+                docker compose -f docker-compose.test.yaml down
+              """       
+            }
+          }
         }
       }
       stage("Deploying"){
@@ -51,8 +34,9 @@ pipeline{
             script{
               try{
                 sh """                 
+                 cp ${ENV} .env
                  docker compose down
-                 docker compose up -d --env-file ${ENV}
+                 docker compose up -d
                 """
               }
               catch(Exception e){
