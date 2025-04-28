@@ -1,0 +1,30 @@
+services:
+  server_test:
+    build:
+      context: .
+    command: sh -c "npx prisma generate && npm run test:e2e"
+    env_file: .env.test
+    depends_on:
+      - mysql_test
+    networks:
+      - capstone-network
+
+  mysql_test:
+    container_name: mysql_db_test
+    image: mysql:latest
+    ports:
+      - ${MYSQL_PORT}:${MYSQL_PORT}
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    volumes:
+      - capstone-data:${PATH_VOLUME}
+    networks:
+      - capstone-network
+
+volumes:
+  capstone-data:
+
+networks:
+  capstone-network:
+    driver: bridge
