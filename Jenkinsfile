@@ -1,8 +1,8 @@
 pipeline{
     agent {
       docker{
-        image 'node:20.18' 
-        args '-v /var/run/docker.sock:/var/run/docker.sock -v npm-cache:/root/.npm' 
+        image 'docker:latest'
+        args '-v /var/run/docker.sock:/var/run/docker.sock'
       }
     }
     stages{
@@ -18,7 +18,7 @@ pipeline{
           ]){
             script {
               sh """
-                cp ${ENV_TEST} .env.test
+                cp $ENV_TEST .env.test
                 docker compose -f docker-compose.test.yaml up --abort-on-container-exit --exit-code-from server
                 docker compose -f docker-compose.test.yaml down
               """       
@@ -34,7 +34,7 @@ pipeline{
             script{
               try{
                 sh """                 
-                 cp ${ENV} .env
+                 cp $ENV .env
                  docker compose down
                  docker compose up -d
                 """
