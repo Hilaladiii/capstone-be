@@ -21,8 +21,6 @@ model User{
 
   userRoles UserRole[]  
 
-
-
   @@map("users")
 }
 
@@ -30,7 +28,7 @@ model UserRole{
   user_id String 
   role_id String
 
-  user User @relation(fields: [user_id],references: [user_id])
+  user User @relation(fields: [user_id],references: [user_id], onDelete: Cascade)
   role Role @relation(fields: [role_id],references: [role_id])
 
   @@id([user_id,role_id])
@@ -52,7 +50,7 @@ model Student{
   year Int @db.UnsignedInt
 
   user_id String @unique
-  user User @relation(fields: [user_id], references: [user_id])
+  user User @relation(fields: [user_id], references: [user_id],onDelete: Cascade)
 
   supervisor_nip String? 
   lecturer Lecturer? @relation(fields: [supervisor_nip],references: [nip])
@@ -68,7 +66,7 @@ model Lecturer{
   nip String @id 
 
   user_id String @unique
-  user User @relation(fields: [user_id], references: [user_id])
+  user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   students Student[]
 
@@ -79,7 +77,7 @@ model Academic{
   nip String @id 
 
   user_id String @unique
-  user User @relation(fields: [user_id], references: [user_id])
+  user User @relation(fields: [user_id], references: [user_id],onDelete: Cascade)
 
   @@map("academics")
 }
@@ -94,7 +92,7 @@ model Logbook{
   update_at DateTime?
 
   nim String  
-  student Student @relation(fields: [nim],references: [nim])
+  student Student @relation(fields: [nim],references: [nim],onDelete: Cascade)
 
 
   @@map("logbooks")
