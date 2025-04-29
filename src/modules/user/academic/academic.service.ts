@@ -35,42 +35,35 @@ export class AcademicService {
 
     const hashedPassword = await bcryptjs.hash(createAcademicDto.password, 10);
 
-    return await this.prismaService.$transaction(async (tx) => {
-      const newUser = await tx.user.create({
-        data: {
-          email: createAcademicDto.email,
-          username: createAcademicDto.username,
-          fullname: createAcademicDto.fullname,
-          password: hashedPassword,
-        },
-      });
+    const roleAcademic = await this.roleService.getRoleByName(Role.ACADEMIC);
 
-      const newAcademic = await tx.academic.create({
-        data: {
-          nip: createAcademicDto.nip,
-          user: {
-            connect: {
-              user_id: newUser.user_id,
-            },
+    const newAcademic = await this.prismaService.user.create({
+      data: {
+        email: createAcademicDto.email,
+        fullname: createAcademicDto.fullname,
+        username: createAcademicDto.username,
+        password: hashedPassword,
+        academic: {
+          create: {
+            nip: createAcademicDto.nip,
           },
         },
-      });
-
-      const roleAcademic = await this.roleService.getRoleByName(Role.ACADEMIC);
-
-      await tx.userRole.create({
-        data: {
-          user_id: newUser.user_id,
-          role_id: roleAcademic.role_id,
+        userRoles: {
+          create: {
+            role_id: roleAcademic.role_id,
+          },
         },
-      });
-
-      return {
-        username: newUser.username,
-        email: newUser.email,
-        fullname: newUser.fullname,
-        nip: newAcademic.nip,
-      };
+      },
+      include: {
+        academic: true,
+      },
     });
+
+    return {
+      username: newAcademic.username,
+      email: newAcademic.email,
+      fullname: newAcademic.fullname,
+      nip: newAcademic.academic.nip,
+    };
   }
 }

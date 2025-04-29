@@ -35,46 +35,39 @@ export class StudentService {
 
     const hashedPassword = await bcryptjs.hash(createStudentDto.password, 10);
 
-    return await this.prismaService.$transaction(async (tx) => {
-      const newUser = await tx.user.create({
-        data: {
-          email: createStudentDto.email,
-          username: createStudentDto.username,
-          fullname: createStudentDto.fullname,
-          password: hashedPassword,
-        },
-      });
+    const roleStudent = await this.roleService.getRoleByName(Role.STUDENT);
 
-      const newStudent = await tx.student.create({
-        data: {
-          nim: createStudentDto.nim,
-          sks: createStudentDto.sks,
-          year: createStudentDto.year,
-          user: {
-            connect: {
-              user_id: newUser.user_id,
-            },
+    const newStudent = await this.prismaService.user.create({
+      data: {
+        email: createStudentDto.email,
+        fullname: createStudentDto.fullname,
+        username: createStudentDto.username,
+        password: hashedPassword,
+        student: {
+          create: {
+            nim: createStudentDto.nim,
+            sks: createStudentDto.sks,
+            year: createStudentDto.year,
           },
         },
-      });
-
-      const roleStudent = await this.roleService.getRoleByName(Role.STUDENT);
-
-      await tx.userRole.create({
-        data: {
-          user_id: newUser.user_id,
-          role_id: roleStudent.role_id,
+        userRoles: {
+          create: {
+            role_id: roleStudent.role_id,
+          },
         },
-      });
-
-      return {
-        username: newUser.username,
-        email: newUser.email,
-        fullname: newUser.fullname,
-        nim: newStudent.nim,
-        sks: newStudent.sks,
-        year: newStudent.year,
-      };
+      },
+      include: {
+        student: true,
+      },
     });
+
+    return {
+      username: newStudent.username,
+      email: newStudent.email,
+      fullname: newStudent.fullname,
+      nim: newStudent.student.nim,
+      sks: newStudent.student.sks,
+      year: newStudent.student.year,
+    };
   }
 }

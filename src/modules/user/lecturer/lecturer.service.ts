@@ -39,43 +39,35 @@ export class LecturerService {
 
     const hashedPassword = await bcryptjs.hash(createLecturerDto.password, 10);
 
-    return await this.prismaService.$transaction(async (tx) => {
-      const newUser = await tx.user.create({
-        data: {
-          email: createLecturerDto.email,
-          username: createLecturerDto.username,
-          fullname: createLecturerDto.fullname,
-          password: hashedPassword,
-        },
-      });
+    const roleLecturer = await this.roleService.getRoleByName(Role.LECTURER);
 
-      const newLecturer = await tx.lecturer.create({
-        data: {
-          nip: createLecturerDto.nip,
-          user: {
-            connect: {
-              user_id: newUser.user_id,
-            },
+    const newLecturer = await this.prismaService.user.create({
+      data: {
+        email: createLecturerDto.email,
+        fullname: createLecturerDto.fullname,
+        username: createLecturerDto.username,
+        password: hashedPassword,
+        lecturer: {
+          create: {
+            nip: createLecturerDto.nip,
           },
         },
-      });
-
-      const roleLecturer = await this.roleService.getRoleByName(Role.LECTURER);
-
-      await tx.userRole.create({
-        data: {
-          user_id: newUser.user_id,
-          role_id: roleLecturer.role_id,
+        userRoles: {
+          create: {
+            role_id: roleLecturer.role_id,
+          },
         },
-      });
-
-      return {
-        username: newUser.username,
-        email: newUser.email,
-        fullname: newUser.fullname,
-        nip: newLecturer.nip,
-      };
+      },
+      include: {
+        lecturer: true,
+      },
     });
+    return {
+      username: newLecturer.username,
+      email: newLecturer.email,
+      fullname: newLecturer.fullname,
+      nip: newLecturer.lecturer.nip,
+    };
   }
 
   async connectStudentSupervisor(nip: string, nim: string) {
