@@ -23,7 +23,7 @@ import { Auth } from 'src/commons/decorators/auth.decorator';
 export class LogbookController {
   constructor(private logbookService: LogbookService) {}
 
-  @Post('create')
+  @Post()
   @Message('Success create logbook')
   @Auth(Role.STUDENT)
   @UseInterceptors(FileInterceptor('file'))
@@ -54,14 +54,14 @@ export class LogbookController {
     return await this.logbookService.getSupervisorStudentLogbooks(nip);
   }
 
-  @Delete('delete/:id')
+  @Delete(':id')
   @Message('Success delete logbook')
   @Auth(Role.STUDENT)
   async delete(@Param('id') id: string) {
     return await this.logbookService.delete(id);
   }
 
-  @Put('update/:id')
+  @Put(':id')
   @Message('Success update logbook')
   @Auth(Role.STUDENT)
   @UseInterceptors(FileInterceptor('file'))
