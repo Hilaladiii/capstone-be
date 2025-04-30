@@ -1,11 +1,15 @@
 import { ExecutionContext, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from '@nestjs/passport';
 import { Observable } from 'rxjs';
 
 @Injectable()
 export class JwtGuard extends AuthGuard('jwt') {
-  constructor(private jwtService: JwtService) {
+  constructor(
+    private jwtService: JwtService,
+    private configService: ConfigService,
+  ) {
     super();
   }
 
@@ -18,7 +22,10 @@ export class JwtGuard extends AuthGuard('jwt') {
 
       if (!bearerToken) return false;
 
-      const token = this.jwtService.verify(bearerToken);
+      const token = this.jwtService.verify(bearerToken, {
+        secret: this.configService.get('JWT_SECRET'),
+      });
+
       if (!token) return false;
 
       request.user = token;
