@@ -78,8 +78,24 @@ model Academic{
 
   user_id String @unique
   user User @relation(fields: [user_id], references: [user_id],onDelete: Cascade)
+  annoucements Announcement[]
 
   @@map("academics")
+}
+
+model Announcement{
+  annoucement_id String @id @default(uuid())
+  title String
+  content String @db.LongText
+  created_at DateTime @default(now())
+  updated_at DateTime?
+  imageUrl String?
+  fileUrl String?
+
+  academic_nip String
+  academic Academic @relation(fields: [academic_nip],references: [nip])
+
+  @@map("announcements")
 }
 
 

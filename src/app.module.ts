@@ -7,6 +7,7 @@ import { SupabaseModule } from './modules/supabase/supabase.module';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { AnnoucementModule } from './modules/annoucement/annoucement.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { APP_GUARD } from '@nestjs/core';
     AuthModule,
     LogbookModule,
     SupabaseModule,
+    AnnoucementModule,
   ],
   providers: [
     {
