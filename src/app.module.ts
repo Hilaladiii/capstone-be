@@ -7,7 +7,9 @@ import { SupabaseModule } from './modules/supabase/supabase.module';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
-import { AnnoucementModule } from './modules/annoucement/annoucement.module';
+import { AnnouncementModule } from './modules/announcement/announcement.module';
+import { NotificationGateway } from './modules/notification/notification.gateway';
+import { NotificationModule } from './modules/notification/notification.module';
 
 @Module({
   imports: [
@@ -25,7 +27,8 @@ import { AnnoucementModule } from './modules/annoucement/annoucement.module';
     AuthModule,
     LogbookModule,
     SupabaseModule,
-    AnnoucementModule,
+    AnnouncementModule,
+    NotificationModule,
   ],
   providers: [
     {
