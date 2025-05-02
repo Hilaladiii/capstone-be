@@ -5,7 +5,7 @@ import { SupabaseService } from '../supabase/supabase.service';
 import { UpdateAnnouncementDto } from './dto/update-announcement.dto';
 
 @Injectable()
-export class AnnoucementService {
+export class AnnouncementService {
   constructor(
     private prismaService: PrismaService,
     private supabaseService: SupabaseService,

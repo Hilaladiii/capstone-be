@@ -13,14 +13,14 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { Auth } from 'src/commons/decorators/auth.decorator';
 import { Role } from 'src/commons/types/role.type';
 import { CreateAnnoucementDto } from './dto/create-annoucement.dto';
-import { AnnoucementService } from './annoucement.service';
+import { AnnouncementService } from './announcement.service';
 import { GetCurrentUser } from 'src/commons/decorators/get-current-user.decorator';
 import { Message } from 'src/commons/decorators/message.decorator';
 import { UpdateAnnouncementDto } from './dto/update-announcement.dto';
 
-@Controller('annoucement')
-export class AnnoucementController {
-  constructor(private announcementService: AnnoucementService) {}
+@Controller('announcement')
+export class AnnouncementController {
+  constructor(private announcementService: AnnouncementService) {}
 
   @Post()
   @Message('Success create announcement')
