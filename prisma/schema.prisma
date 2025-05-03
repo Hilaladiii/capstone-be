@@ -9,37 +9,28 @@ datasource db {
 
 
 model User{
-  user_id String @id @default(uuid())
+  userId String @id @default(uuid())
   email String @unique
   fullname String 
   username String
   password String  
+  profileImageUrl String?
 
   student Student?
   lecturer Lecturer?
   academic Academic?
 
-  userRoles UserRole[]  
+  roles Role[]
 
   @@map("users")
 }
 
-model UserRole{
-  user_id String 
-  role_id String
-
-  user User @relation(fields: [user_id],references: [user_id], onDelete: Cascade)
-  role Role @relation(fields: [role_id],references: [role_id])
-
-  @@id([user_id,role_id])
-  @@map("user_roles")
-}
 
 model Role{
-  role_id String @id @default(uuid())
-  role_name String
+  roleId String @id @default(uuid())
+  roleName String
   
-  userRoles UserRole[]
+  users User[]
 
   @@map("roles")
 }
@@ -49,14 +40,17 @@ model Student{
   sks Int @db.UnsignedInt
   year Int @db.UnsignedInt
 
-  user_id String @unique
-  user User @relation(fields: [user_id], references: [user_id],onDelete: Cascade)
+  userId String @unique
+  user User @relation(fields: [userId], references: [userId],onDelete: Cascade)
 
-  supervisor_nip String? 
-  lecturer Lecturer? @relation(fields: [supervisor_nip],references: [nip])
+  supervisorNip String? 
+  lecturer Lecturer? @relation(fields: [supervisorNip],references: [nip])
   
   
   logbooks Logbook[]
+  documents Document[]
+
+  announcementReads AnnouncementRead[]
 
 
   @@map("students")
@@ -65,8 +59,8 @@ model Student{
 model Lecturer{
   nip String @id 
 
-  user_id String @unique
-  user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  userId String @unique
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   students Student[]
 
@@ -76,40 +70,139 @@ model Lecturer{
 model Academic{
   nip String @id 
 
-  user_id String @unique
-  user User @relation(fields: [user_id], references: [user_id],onDelete: Cascade)
+  userId String @unique
+  user User @relation(fields: [userId], references: [userId],onDelete: Cascade)
   annoucements Announcement[]
 
   @@map("academics")
 }
 
 model Announcement{
-  annoucement_id String @id @default(uuid())
+  announcementId String @id @default(uuid())
   title String
   content String @db.LongText
-  created_at DateTime @default(now())
-  updated_at DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime?
   imageUrl String?
   fileUrl String?
 
-  academic_nip String
-  academic Academic @relation(fields: [academic_nip],references: [nip])
+  academicNip String
+  academic Academic @relation(fields: [academicNip],references: [nip])
+
+  announcementReads AnnouncementRead[]
 
   @@map("announcements")
 }
 
+enum Status{
+  UNREAD
+  READ
+}
+
+model AnnouncementRead{
+  id String @id @default(uuid())
+  status Status @default(UNREAD)
+  readAt DateTime?
+
+  studentNim String
+  student Student @relation(fields: [studentNim],references: [nim])
+
+  announcementId String
+  announcement Announcement @relation(fields: [announcementId],references: [announcementId])
+
+  @@unique([studentNim,announcementId])
+  @@map("announcementReads")
+}
+
 
 model Logbook{
-  logbook_id String @id @default(uuid())
+  logbookId String @id @default(uuid())
   description String
   imageUrl String
   imageOriginalName String
-  created_at DateTime @default(now())
-  update_at DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime?
 
   nim String  
   student Student @relation(fields: [nim],references: [nim],onDelete: Cascade)
 
 
   @@map("logbooks")
+}
+
+model Document{
+  documentId String @id @default(uuid())
+  name String
+  nim String
+  phoneNumber String
+  totalSks String
+  email String
+  nameOfAgency String
+  agencyAddress String
+  createdAt DateTime @default(now())
+
+  studentNim String
+  student Student @relation(fields: [studentNim],references: [nim])
+
+  internshipApplication InternshipApplication?
+  internshipExtension InternshipExtension?
+  internshipCancellation InternshipCancellation?
+  
+  @@map("documents")
+}
+
+enum InternshipType {
+  COMPANY
+  COMPETITION
+}
+
+model InternshipApplication{
+  documentId String @id
+  type InternshipType
+  recipientOfLetter String
+  internshipObject String
+  startDate DateTime
+  studyResultCardUrl String
+
+  document Document @relation(fields: [documentId], references: [documentId])
+
+
+  @@map("internshipAppilcations")
+}
+
+model InternshipExtension{
+  documentId String @id
+  startDate DateTime
+  submissionDate DateTime
+  reasonExtension String @db.Text
+  internshipApplicationFileUrl String
+  internshipExtensionFileUrl String
+
+  document Document @relation(fields: [documentId],references: [documentId])
+
+  @@map("internshipExtensions")
+}
+
+model InternshipCancellation{
+  documentId String @id
+  recipientOfLetter String
+  reasonCancellation String @db.Text
+
+  document Document @relation(fields: [documentId],references: [documentId])
+  supportingDocuments SupportingDocument[]
+
+
+  @@map("internshipCancellations")
+}
+
+model SupportingDocument{
+  id String @id @default(uuid())  
+  documentUrl String
+  fileName    String
+  fileType    String
+
+  internshipCancellationId String
+  internshipCancellation InternshipCancellation @relation(fields: [internshipCancellationId], references: [documentId])
+
+  @@map("supportingDocuments")
 }
