@@ -1,11 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { AnnouncementService } from '../announcement/announcement.service';
+import { NotificationGateway } from './notification.gateway';
+import { Announcement } from '@prisma/client';
 
 @Injectable()
 export class NotificationService {
-  constructor(private announcementService: AnnouncementService) {}
+  constructor(private notificationGateway: NotificationGateway) {}
 
-  async sendAnnouncement() {
-    return await this.announcementService.getAll();
+  async broadcastAnnouncement(announcement: Announcement) {
+    this.notificationGateway.server.emit('announcement', announcement);
+  }
+
+  async sendNotificationToStudent(data: { nim: string }) {
+    this.notificationGateway.server
+      .to(`student_${data.nim}`)
+      .emit('notification:new', 'testing');
   }
 }

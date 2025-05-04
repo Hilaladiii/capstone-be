@@ -3,12 +3,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateAnnoucementDto } from './dto/create-annoucement.dto';
 import { SupabaseService } from '../supabase/supabase.service';
 import { UpdateAnnouncementDto } from './dto/update-announcement.dto';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class AnnouncementService {
   constructor(
     private prismaService: PrismaService,
     private supabaseService: SupabaseService,
+    private notificationService: NotificationService,
   ) {}
 
   async create(
@@ -36,7 +38,7 @@ export class AnnouncementService {
       fileUrl = publicUrl;
     }
 
-    return await this.prismaService.announcement.create({
+    const annoucement = await this.prismaService.announcement.create({
       data: {
         title: data.title,
         content: data.content,
@@ -49,6 +51,9 @@ export class AnnouncementService {
         },
       },
     });
+
+    await this.notificationService.broadcastAnnouncement(annoucement);
+    return annoucement;
   }
 
   async update(
@@ -83,15 +88,15 @@ export class AnnouncementService {
         ...urlPaylod,
       },
       where: {
-        annoucement_id: data.announcement_id,
+        announcementId: data.announcement_id,
       },
     });
   }
 
-  async delete(annoucement_id: string) {
+  async delete(announcementId: string) {
     const announcement = await this.prismaService.announcement.findUnique({
       where: {
-        annoucement_id,
+        announcementId,
       },
     });
 
@@ -99,7 +104,7 @@ export class AnnouncementService {
 
     return await this.prismaService.announcement.delete({
       where: {
-        annoucement_id,
+        announcementId,
       },
     });
   }
@@ -107,17 +112,17 @@ export class AnnouncementService {
   async getAll() {
     return await this.prismaService.announcement.findMany({
       select: {
-        annoucement_id: true,
+        announcementId: true,
         title: true,
-        created_at: true,
+        createdAt: true,
       },
     });
   }
 
-  async getById(annoucement_id: string) {
+  async getById(announcementId: string) {
     const announcement = await this.prismaService.announcement.findUnique({
       where: {
-        annoucement_id,
+        announcementId,
       },
     });
 

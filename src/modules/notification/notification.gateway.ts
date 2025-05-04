@@ -1,11 +1,14 @@
+import { UseGuards } from '@nestjs/common';
 import {
+  ConnectedSocket,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { Socket, Server } from 'socket.io';
-import { NotificationService } from './notification.service';
-import { UseGuards } from '@nestjs/common';
+import { Server, Socket } from 'socket.io';
+import { SocketWithUser } from 'src/commons/types/notification.type';
 import { WsJwtGuard } from 'src/providers/guards/ws-jwt.guard';
 
 @WebSocketGateway(8000, {
@@ -13,21 +16,19 @@ import { WsJwtGuard } from 'src/providers/guards/ws-jwt.guard';
     credentials: true,
   },
 })
-export class NotificationGateway {
+export class NotificationGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server: Server;
-  constructor(private notificationService: NotificationService) {}
 
-  @SubscribeMessage('broadcast-announcements')
+  @SubscribeMessage('join-student-room')
   @UseGuards(WsJwtGuard)
-  async handleMessage(client: Socket, payload: any) {
-    try {
-      const annoucements = await this.notificationService.sendAnnouncement();
-
-      this.server.emit('announcements', annoucements);
-    } catch (error) {
-      client.emit('error', { message: 'Failed to broadcast announcements' });
-      return { status: 'error', message: error.message };
-    }
+  handleJoinRoom(@ConnectedSocket() client: SocketWithUser) {
+    client.join(`student_${client.user.nim}`);
+    client.emit('joined-room', { success: true });
   }
+
+  handleConnection(client: any, ...args: any[]) {}
+  handleDisconnect(client: any) {}
 }
