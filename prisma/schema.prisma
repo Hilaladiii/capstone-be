@@ -206,3 +206,15 @@ model SupportingDocument{
 
   @@map("supportingDocuments")
 }
+
+model Partner {
+  partnerId String @id @default(uuid())
+  name String 
+  address String
+  description String
+  partnerUrl String
+  logoUrl String?
+  createdAt DateTime @default(now())
+  
+  @@map("partners")
+}
