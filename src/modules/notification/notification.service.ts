@@ -10,9 +10,9 @@ export class NotificationService {
     this.notificationGateway.server.emit('announcement', announcement);
   }
 
-  async sendNotificationToStudent(data: { nim: string }) {
+  async sendNotificationToStudent<T>(data: T & { nim: string }) {
     this.notificationGateway.server
       .to(`student_${data.nim}`)
-      .emit('notification:new', 'testing');
+      .emit('notification:new', data);
   }
 }
