@@ -25,7 +25,7 @@ export class SupabaseService {
           upsert: true,
         });
 
-      if (error) throw new InternalServerErrorException();
+      if (error) throw new InternalServerErrorException(error.message);
 
       const { data } = this.supabaseClient.storage
         .from(bucket)

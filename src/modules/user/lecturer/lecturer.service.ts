@@ -52,9 +52,9 @@ export class LecturerService {
             nip: createLecturerDto.nip,
           },
         },
-        userRoles: {
-          create: {
-            role_id: roleLecturer.role_id,
+        roles: {
+          connect: {
+            roleId: roleLecturer.roleId,
           },
         },
       },
@@ -99,7 +99,7 @@ export class LecturerService {
         nim: student.nim,
       },
       data: {
-        supervisor_nip: lecturer.nip,
+        supervisorNip: lecturer.nip,
       },
     });
   }

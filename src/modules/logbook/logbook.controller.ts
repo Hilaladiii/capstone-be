@@ -32,6 +32,7 @@ export class LogbookController {
     @GetCurrentUser('nim') nim: string,
     @UploadedFile() file: Express.Multer.File,
   ) {
+    console.log(file);
     if (!file) throw new BadRequestException('File is required');
     return await this.logbookService.create(
       nim,

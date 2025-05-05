@@ -48,9 +48,9 @@ export class AcademicService {
             nip: createAcademicDto.nip,
           },
         },
-        userRoles: {
-          create: {
-            role_id: roleAcademic.role_id,
+        roles: {
+          connect: {
+            roleId: roleAcademic.roleId,
           },
         },
       },

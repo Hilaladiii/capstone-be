@@ -13,10 +13,9 @@ export class UserController {
   @Message('Success change your password')
   @Auth()
   async changePassword(
-    @GetCurrentUser('sub') user_id: string,
+    @GetCurrentUser('sub') userId: string,
     @Body() changePasswordDto: ChangePasswordDto,
   ) {
-    console.log(user_id);
-    await this.userService.changePassword({ ...changePasswordDto, user_id });
+    await this.userService.changePassword({ ...changePasswordDto, userId });
   }
 }

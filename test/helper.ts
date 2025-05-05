@@ -50,5 +50,12 @@ export const STUDENT_TEST_PAYLOAD = {
 
 export const LOGBOOK_TEST_PAYLOAD = {
   description: 'logbook testing description',
-  file: '../assets/logbooktest.jpg',
+  file: '../assets/imagetest1.jpg',
+};
+
+export const ANNOUNCEMENT_TEST_PAYLOAD = {
+  title: 'pengumuman testing',
+  content: 'isi pengumuman testing',
+  image: '../assets/imagetest1.jpg',
+  file: '../assets/imagetest2.jpg',
 };

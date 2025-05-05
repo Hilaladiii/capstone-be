@@ -14,12 +14,12 @@ export class UserService {
   async changePassword({
     password,
     confirmPassword,
-    user_id,
+    userId,
   }: ChangePasswordDto & {
-    user_id: string;
+    userId: string;
   }) {
     const user = await this.prismaService.user.findUnique({
-      where: { user_id },
+      where: { userId },
     });
     if (!user) throw new NotFoundException('User not found');
 
@@ -31,7 +31,7 @@ export class UserService {
     const hashedPassword = await bcryptjs.hash(password, 10);
 
     await this.prismaService.user.update({
-      where: { user_id },
+      where: { userId },
       data: {
         password: hashedPassword,
       },

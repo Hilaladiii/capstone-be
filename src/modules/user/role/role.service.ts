@@ -8,24 +8,24 @@ import { Role as RoleEnum } from 'src/commons/types/role.type';
 export class RoleService {
   constructor(private prismaService: PrismaService) {}
 
-  async create({ role_name }: CreateRoleDto): Promise<Role> {
+  async create({ roleName }: CreateRoleDto): Promise<Role> {
     const role = await this.prismaService.role.findFirst({
       where: {
-        role_name,
+        roleName,
       },
     });
 
-    if (role?.role_name) throw new BadRequestException('Role already exists');
+    if (role?.roleName) throw new BadRequestException('Role already exists');
 
     return await this.prismaService.role.create({
       data: {
-        role_name,
+        roleName,
       },
     });
   }
 
-  async getRoleByName(role_name: RoleEnum) {
+  async getRoleByName(roleName: RoleEnum) {
     const roles = await this.prismaService.role.findMany();
-    return roles.find((role) => role.role_name === role_name);
+    return roles.find((role) => role.roleName === roleName);
   }
 }

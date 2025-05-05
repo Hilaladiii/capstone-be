@@ -24,13 +24,9 @@ export class AuthService {
         OR: userInput,
       },
       include: {
-        userRoles: {
-          include: {
-            role: {
-              select: {
-                role_name: true,
-              },
-            },
+        roles: {
+          select: {
+            roleName: true,
           },
         },
         student: {
@@ -58,8 +54,8 @@ export class AuthService {
     if (!isPasswordMatch)
       throw new BadRequestException('Email or password invalid!');
 
-    const roles = user.userRoles.map(
-      ({ role }) => Role[role.role_name as keyof typeof Role],
+    const roles = user.roles.map(
+      ({ roleName }) => Role[roleName as keyof typeof Role],
     );
 
     const isStudentRole = roles.includes(Role.STUDENT) && user.student?.nim;
@@ -71,7 +67,7 @@ export class AuthService {
 
     if (isStudentRole) {
       const claim: JwtStudentClaim = {
-        sub: user.user_id,
+        sub: user.userId,
         roles,
         nim: user.student.nim,
       };
@@ -80,7 +76,7 @@ export class AuthService {
 
     if (isAcademicRole) {
       const claim: JwtAcademicClaim = {
-        sub: user.user_id,
+        sub: user.userId,
         roles,
         nip: user.academic.nip,
       };
@@ -89,7 +85,7 @@ export class AuthService {
 
     if (isLecturerRole) {
       const claim: JwtLecturerClaim = {
-        sub: user.user_id,
+        sub: user.userId,
         roles,
         nip: user.lecturer.nip,
       };

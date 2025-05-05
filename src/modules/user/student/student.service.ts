@@ -50,9 +50,9 @@ export class StudentService {
             year: createStudentDto.year,
           },
         },
-        userRoles: {
-          create: {
-            role_id: roleStudent.role_id,
+        roles: {
+          connect: {
+            roleId: roleStudent.roleId,
           },
         },
       },

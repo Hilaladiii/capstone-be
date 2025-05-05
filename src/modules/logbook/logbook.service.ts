@@ -42,13 +42,13 @@ export class LogbookService {
   }
 
   async update(
-    logbook_id: string,
+    logbookId: string,
     updateLogbookDto: UpdateLogbookDto,
     file?: Express.Multer.File,
   ) {
     const logbook = await this.prismaService.logbook.findUnique({
       where: {
-        logbook_id,
+        logbookId,
       },
     });
 
@@ -66,11 +66,11 @@ export class LogbookService {
       updateData.imageOriginalName = file.originalname;
     }
 
-    updateData.update_at = new Date();
+    updateData.updatedAt = new Date();
 
     return await this.prismaService.logbook.update({
       where: {
-        logbook_id,
+        logbookId,
       },
       data: {
         ...updateData,
@@ -78,10 +78,10 @@ export class LogbookService {
     });
   }
 
-  async delete(logbook_id: string) {
+  async delete(logbookId: string) {
     const logbook = await this.prismaService.logbook.findUnique({
       where: {
-        logbook_id,
+        logbookId,
       },
     });
 
@@ -90,7 +90,7 @@ export class LogbookService {
     await this.supabaseService.delete(logbook.imageOriginalName, 'logbook');
     return await this.prismaService.logbook.delete({
       where: {
-        logbook_id,
+        logbookId,
       },
     });
   }
