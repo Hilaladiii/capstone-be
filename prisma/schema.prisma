@@ -45,6 +45,8 @@ model Student{
 
   supervisorNip String? 
   lecturer Lecturer? @relation(fields: [supervisorNip],references: [nip])
+
+  consultations Consultation[]
   
   
   logbooks Logbook[]
@@ -128,6 +130,28 @@ model Logbook{
 
 
   @@map("logbooks")
+}
+
+enum ConsultationStatus{
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+model Consultation{
+  consultationId String @id @default(uuid())
+  fullname String
+  nim String
+  agencyName String
+  position String
+  activityDescription String
+  createdAt DateTime @default(now())
+  note String?
+  agreementStatus ConsultationStatus @default(PENDING)
+
+  studentNim String
+  student Student @relation(fields: [studentNim], references: [nim])
+
+  @@map("consultations")
 }
 
 enum DocumentStatus{
