@@ -11,6 +11,7 @@ import { AnnouncementModule } from './modules/announcement/announcement.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { InternshipModule } from './modules/internship/internship.module';
 import { PartnerModule } from './modules/partner/partner.module';
+import { ConsultationModule } from './modules/consultation/consultation.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { PartnerModule } from './modules/partner/partner.module';
     NotificationModule,
     InternshipModule,
     PartnerModule,
+    ConsultationModule,
   ],
   providers: [
     {
