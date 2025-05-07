@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -34,8 +35,20 @@ export class PartnerController {
 
   @Get()
   @Message('Success get all partners')
-  async getAll() {
-    return await this.partnerService.getAll();
+  async getAll(
+    @Query('name') name?: string,
+    @Query('currPage') currPage?: string,
+    @Query('city') city?: string,
+    @Query('dataPerPage') dataPerPage?: string,
+    @Query('orderBy') orderBy?: 'asc' | 'desc',
+  ) {
+    return await this.partnerService.getAll({
+      name,
+      city,
+      currPage: Number(currPage),
+      dataPerPage: Number(dataPerPage),
+      orderBy,
+    });
   }
 
   @Get(':id')

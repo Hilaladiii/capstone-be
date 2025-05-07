@@ -16,11 +16,9 @@ export class PartnerService {
   ) {}
 
   async create({
-    name,
-    address,
-    description,
-    partnerUrl,
     logo,
+    name,
+    ...rest
   }: CreatePartnerDto & { logo: Express.Multer.File }) {
     const partner = await this.prismaService.partner.findFirst({
       where: {
@@ -38,23 +36,59 @@ export class PartnerService {
     return await this.prismaService.partner.create({
       data: {
         name,
-        address,
-        description,
-        partnerUrl,
         logoUrl,
+        ...rest,
       },
     });
   }
 
-  async getAll() {
-    return await this.prismaService.partner.findMany({
-      select: {
-        partnerId: true,
-        name: true,
-        description: true,
-        logoUrl: true,
+  async getAll({
+    name = '',
+    currPage = 1,
+    dataPerPage = 5,
+    city = '',
+    orderBy = 'asc',
+  }: {
+    name?: string;
+    currPage: number;
+    dataPerPage?: number;
+    orderBy?: 'asc' | 'desc';
+    city?: string;
+  }) {
+    const offset = (currPage - 1) * 5;
+    const whereOption = {
+      AND: [
+        {
+          name: {
+            contains: name,
+          },
+        },
+        {
+          address: {
+            contains: city,
+          },
+        },
+      ],
+    };
+
+    const partner = await this.prismaService.partner.findMany({
+      skip: offset,
+      take: dataPerPage,
+      where: whereOption,
+      orderBy: {
+        name: orderBy,
       },
     });
+
+    const totalCount = await this.prismaService.partner.count({
+      where: whereOption,
+    });
+
+    return {
+      partner,
+      totalCount,
+      totalPage: Math.ceil(totalCount / dataPerPage),
+    };
   }
 
   async getById(partnerId: string) {
