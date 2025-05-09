@@ -22,6 +22,11 @@ services:
       - capstone-data:${PATH_VOLUME}
     networks:
       - capstone-network
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   capstone-data:
