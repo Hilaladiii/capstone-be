@@ -12,6 +12,7 @@ import { NotificationModule } from './modules/notification/notification.module';
 import { InternshipModule } from './modules/internship/internship.module';
 import { PartnerModule } from './modules/partner/partner.module';
 import { ConsultationModule } from './modules/consultation/consultation.module';
+import { JwtCoreModule } from './modules/jwt-core/jwt-core.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { ConsultationModule } from './modules/consultation/consultation.module';
     InternshipModule,
     PartnerModule,
     ConsultationModule,
+    JwtCoreModule,
   ],
   providers: [
     {

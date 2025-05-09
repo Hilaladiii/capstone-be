@@ -9,12 +9,13 @@ import {
   JwtStudentClaim,
 } from 'src/commons/types/jwt.type';
 import { Role } from 'src/commons/types/role.type';
+import { JwtCoreService } from '../jwt-core/jwt-core.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private prismaService: PrismaService,
-    private jwtService: JwtService,
+    private jwtCoreService: JwtCoreService,
   ) {}
 
   async login({ email, nip, nim, password }: LoginDto): Promise<string> {
@@ -71,7 +72,7 @@ export class AuthService {
         roles,
         nim: user.student.nim,
       };
-      return this.signStudentJwt(claim);
+      return this.jwtCoreService.signStudentJwt(claim);
     }
 
     if (isAcademicRole) {
@@ -80,7 +81,7 @@ export class AuthService {
         roles,
         nip: user.academic.nip,
       };
-      return this.signAcademicJwt(claim);
+      return this.jwtCoreService.signAcademicJwt(claim);
     }
 
     if (isLecturerRole) {
@@ -89,20 +90,8 @@ export class AuthService {
         roles,
         nip: user.lecturer.nip,
       };
-      return this.signLecturerJwt(claim);
+      return this.jwtCoreService.signLecturerJwt(claim);
     }
-  }
-
-  async signStudentJwt(claim: JwtStudentClaim) {
-    return this.jwtService.sign(claim);
-  }
-
-  async signLecturerJwt(claim: JwtLecturerClaim) {
-    return this.jwtService.sign(claim);
-  }
-
-  async signAcademicJwt(claim: JwtAcademicClaim) {
-    return this.jwtService.sign(claim);
   }
 
   private checkInputLoginCondition(email?: string, nim?: string, nip?: string) {
