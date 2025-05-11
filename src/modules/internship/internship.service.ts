@@ -4,12 +4,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateInternshipApplicationDto } from './dto/create-internship-application.dto';
+import { CreateInternshipApplicationCompanyDto } from './dto/create-internship-application-company.dto';
 import { CreateInternshipExtensionDto } from './dto/create-internship-extension.dto';
 import { SupabaseService } from '../supabase/supabase.service';
 import { CreateInternshipCancellationDto } from './dto/create-internship-cancellation.dto';
 import { DocumentStatus } from '@prisma/client';
 import { NotificationService } from '../notification/notification.service';
+import { CreateInternshipApplicationCompetitionDto } from './dto/create-internship-application-competition';
 
 @Injectable()
 export class InternshipService {
@@ -19,26 +20,24 @@ export class InternshipService {
     private notificationService: NotificationService,
   ) {}
 
-  async createInternshipApplication({
-    name,
-    nim,
-    email,
-    phoneNumber,
+  async createInternshipApplicationCompany({
     totalSks,
     recipientOfLetter,
     agencyAddress,
     internshipObject,
-    nameOfAgency,
+    agencyName,
     startDate,
-    type,
+    finishDate,
     studyResultCardFile,
-  }: CreateInternshipApplicationDto & {
-    nim: string;
+    studentNimApply,
+    ...document
+  }: CreateInternshipApplicationCompanyDto & {
+    studentNimApply: string;
     studyResultCardFile: Express.Multer.File;
   }) {
     const student = await this.prismaService.student.findUnique({
       where: {
-        nim,
+        nim: studentNimApply,
       },
     });
 
@@ -49,29 +48,93 @@ export class InternshipService {
       'documents',
     );
 
-    const startDateFormat = new Date(startDate);
-
     return await this.prismaService.document.create({
       data: {
-        name,
-        email,
-        agencyAddress,
-        nim,
-        nameOfAgency,
-        phoneNumber,
-        totalSks,
-        internshipApplication: {
+        ...document,
+        internshipApplicationCompany: {
           create: {
+            agencyName,
+            agencyAddress,
+            totalSks,
+            startDate: new Date(startDate),
+            finishDate: new Date(finishDate),
             internshipObject,
             recipientOfLetter,
-            startDate: startDateFormat,
             studyResultCardUrl,
-            type,
           },
         },
         student: {
           connect: {
-            nim,
+            nim: studentNimApply,
+          },
+        },
+      },
+    });
+  }
+
+  async createInternshipApplicationCompetition({
+    totalSks,
+    competitionName,
+    competitionSupervisor,
+    competitionCategory,
+    competitionOrganizer,
+    competitionInformation,
+    competitionLevel,
+    competitionWinner,
+    competitionProduct,
+    competitionStartDate,
+    competitionFinishDate,
+    studentNimApply,
+    studyResultCardFile,
+    proposalCompetitionSertificationFile,
+    ...document
+  }: CreateInternshipApplicationCompetitionDto & {
+    studentNimApply: string;
+    studyResultCardFile: Express.Multer.File;
+    proposalCompetitionSertificationFile: Express.Multer.File;
+  }) {
+    const student = await this.prismaService.student.findUnique({
+      where: {
+        nim: studentNimApply,
+      },
+    });
+
+    if (!student) throw new NotFoundException('student not found');
+
+    const { publicUrl: studyResultCardUrl } = await this.supabaseService.upload(
+      studyResultCardFile,
+      'documents',
+    );
+
+    const { publicUrl: proposalCompetitionSertificationUrl } =
+      await this.supabaseService.upload(
+        proposalCompetitionSertificationFile,
+        'documents',
+      );
+
+    return await this.prismaService.document.create({
+      data: {
+        ...document,
+        internshipApplicationCompetition: {
+          create: {
+            totalSks,
+            competitionName,
+            competitionSupervisor,
+            competitionCategory,
+            competitionOrganizer,
+            competitionInformation,
+            competitionLevel,
+            competitionWinner,
+            competitionProduct,
+            competitionStartDate: new Date(competitionStartDate),
+            competitionFinishDate: new Date(competitionFinishDate),
+            studyResultCardUrl,
+            proposalCompetitionSertificationUrl,
+          },
+        },
+        student: {
+          connect: {
+            nim: studentNimApply,
           },
         },
       },
@@ -79,20 +142,26 @@ export class InternshipService {
   }
 
   async createInternshipExtension({
-    startDate,
-    submissionDate,
+    totalSks,
+    agencyName,
+    agencyAddress,
+    startDatePeriod,
+    finishDatePeriod,
+    startExtensionDatePeriod,
+    finishExtensionDatePeriod,
     reasonExtension,
     internshipApplicationFile,
     intershipExtensionFile,
-    ...createDocument
+    studentNimApply,
+    ...document
   }: CreateInternshipExtensionDto & {
-    nim: string;
+    studentNimApply: string;
     internshipApplicationFile: Express.Multer.File;
     intershipExtensionFile: Express.Multer.File;
   }) {
     const student = await this.prismaService.student.findUnique({
       where: {
-        nim: createDocument.nim,
+        nim: studentNimApply,
       },
     });
 
@@ -105,14 +174,19 @@ export class InternshipService {
 
     return await this.prismaService.document.create({
       data: {
-        ...createDocument,
+        ...document,
         internshipExtension: {
           create: {
+            totalSks,
+            agencyName,
+            agencyAddress,
+            startDatePeriod: new Date(startDatePeriod),
+            finishDatePeriod: new Date(finishDatePeriod),
+            startExtensionDatePeriod: new Date(startExtensionDatePeriod),
+            finishExtensionDatePeriod: new Date(finishExtensionDatePeriod),
+            reasonExtension,
             internshipApplicationFileUrl,
             internshipExtensionFileUrl,
-            reasonExtension,
-            startDate: new Date(startDate),
-            submissionDate: new Date(submissionDate),
           },
         },
         student: {
@@ -125,38 +199,41 @@ export class InternshipService {
   }
 
   async createInternshipCancellation({
-    recipientOfLetter,
-    reasonCancellation,
-    supportingDocument,
-    ...createDocument
+    agencyName,
+    agencyAddress,
+    cancellationReason,
+    supportingDocumentFile,
+    studentNimApply,
+    ...document
   }: CreateInternshipCancellationDto & {
-    nim: string;
-    supportingDocument: Express.Multer.File;
+    studentNimApply: string;
+    supportingDocumentFile: Express.Multer.File;
   }) {
     const student = await this.prismaService.student.findUnique({
       where: {
-        nim: createDocument.nim,
+        nim: studentNimApply,
       },
     });
 
     if (!student) throw new NotFoundException('student not found');
 
     const { publicUrl: supportingDocumentUrl } =
-      await this.supabaseService.upload(supportingDocument, 'documents');
+      await this.supabaseService.upload(supportingDocumentFile, 'documents');
 
     return await this.prismaService.document.create({
       data: {
-        ...createDocument,
+        ...document,
         internshipCancellation: {
           create: {
-            reasonCancellation,
-            recipientOfLetter,
+            agencyName,
+            agencyAddress,
+            cancellationReason,
             supportingDocumentUrl,
           },
         },
         student: {
           connect: {
-            nim: createDocument.nim,
+            nim: studentNimApply,
           },
         },
       },
@@ -172,7 +249,7 @@ export class InternshipService {
     rejectionReason?: string;
     documentId: string;
   }) {
-    if (status === DocumentStatus.FAILED && !rejectionReason)
+    if (status === DocumentStatus.DOCUMENT_REVISION && !rejectionReason)
       throw new BadRequestException('Rejection reason must be provided');
 
     await this.getById(documentId);
@@ -210,5 +287,18 @@ export class InternshipService {
     if (!document) throw new NotFoundException('Document not found');
 
     return document;
+  }
+
+  async getStatus(nim: string) {
+    return await this.prismaService.document.findMany({
+      where: {
+        student: {
+          nim,
+        },
+      },
+      select: {
+        status: true,
+      },
+    });
   }
 }

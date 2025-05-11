@@ -1,13 +1,8 @@
-import { IsNotEmpty, IsString } from 'class-validator';
 import { CreateDocumentDto } from './create-document.dto';
+import { IsNotEmpty, IsString } from 'class-validator';
 import { ValidateGroupField } from 'src/commons/decorators/validate-group.decorator';
 
-export class CreateInternshipExtensionDto extends CreateDocumentDto {
-  @IsNotEmpty()
-  @IsString()
-  @ValidateGroupField({ groupField: 'isGroup', type: 'string' })
-  totalSks: string;
-
+export class CreateInternshipApplicationCompanyDto extends CreateDocumentDto {
   @IsNotEmpty()
   @IsString()
   agencyName: string;
@@ -18,21 +13,22 @@ export class CreateInternshipExtensionDto extends CreateDocumentDto {
 
   @IsNotEmpty()
   @IsString()
-  startDatePeriod: string;
+  @ValidateGroupField({ groupField: 'isGroup', type: 'string' })
+  totalSks: string;
 
   @IsNotEmpty()
   @IsString()
-  finishDatePeriod: string;
+  startDate: string;
 
   @IsNotEmpty()
   @IsString()
-  startExtensionDatePeriod: string;
+  finishDate: string;
 
   @IsNotEmpty()
   @IsString()
-  finishExtensionDatePeriod: string;
+  internshipObject: string;
 
   @IsNotEmpty()
   @IsString()
-  reasonExtension: string;
+  recipientOfLetter: string;
 }

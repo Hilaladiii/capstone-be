@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
   Param,
   Patch,
   Post,
@@ -13,35 +14,76 @@ import { Auth } from 'src/commons/decorators/auth.decorator';
 import { Message } from 'src/commons/decorators/message.decorator';
 import { Role } from 'src/commons/types/role.type';
 import { InternshipService } from './internship.service';
-import { CreateInternshipApplicationDto } from './dto/create-internship-application.dto';
 import { GetCurrentUser } from 'src/commons/decorators/get-current-user.decorator';
 import {
   FileFieldsInterceptor,
   FileInterceptor,
 } from '@nestjs/platform-express';
+import { CreateInternshipApplicationCompanyDto } from './dto/create-internship-application-company.dto';
 import { CreateInternshipExtensionDto } from './dto/create-internship-extension.dto';
 import { CreateInternshipCancellationDto } from './dto/create-internship-cancellation.dto';
 import { UpdateStatusDocumentDto } from './dto/update-status-document.dto';
+import { CreateInternshipApplicationCompetitionDto } from './dto/create-internship-application-competition';
 
 @Controller('internship')
 export class InternshipController {
   constructor(private internshipService: InternshipService) {}
 
-  @Post('application')
+  @Post('application/company')
   @Message('Success create internship application')
   @Auth(Role.STUDENT)
-  @UseInterceptors(FileInterceptor('file'))
-  async createInternshipApplication(
-    @GetCurrentUser('nim') nim: string,
-    @Body() createInternshipApplicationDto: CreateInternshipApplicationDto,
+  @UseInterceptors(FileInterceptor('studyResultCardFile'))
+  async createInternshipApplicationCompany(
+    @GetCurrentUser('nim') studentNimApply: string,
+    @Body()
+    createInternshipApplicationCompanyDto: CreateInternshipApplicationCompanyDto,
     @UploadedFile() studyResultCardFile: Express.Multer.File,
   ) {
     if (!studyResultCardFile)
       throw new BadRequestException('study result card file must be provided');
-    return await this.internshipService.createInternshipApplication({
-      ...createInternshipApplicationDto,
+    return await this.internshipService.createInternshipApplicationCompany({
+      ...createInternshipApplicationCompanyDto,
       studyResultCardFile,
-      nim,
+      studentNimApply,
+    });
+  }
+
+  @Post('application/competition')
+  @Message('Success create internship application')
+  @Auth(Role.STUDENT)
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      {
+        name: 'studyResultCardFile',
+      },
+      {
+        name: 'proposalCompetitionSertificationFile',
+      },
+    ]),
+  )
+  async createInternshipApplicationCompetition(
+    @GetCurrentUser('nim') studentNimApply: string,
+    @Body()
+    createInternshipApplicationCompetitionDto: CreateInternshipApplicationCompetitionDto,
+    @UploadedFiles()
+    files: {
+      studyResultCardFile: Express.Multer.File;
+      proposalCompetitionSertificationFile: Express.Multer.File;
+    },
+  ) {
+    const studyResultCardFile = files.studyResultCardFile?.[0];
+    const proposalCompetitionSertificationFile =
+      files.proposalCompetitionSertificationFile?.[0];
+
+    if (!studyResultCardFile || !proposalCompetitionSertificationFile)
+      throw new BadRequestException(
+        'Study result card,proposal competition, sertification must be provided',
+      );
+    return await this.internshipService.createInternshipApplicationCompetition({
+      ...createInternshipApplicationCompetitionDto,
+      studyResultCardFile,
+      proposalCompetitionSertificationFile,
+      studentNimApply,
     });
   }
 
@@ -50,25 +92,30 @@ export class InternshipController {
   @Auth(Role.STUDENT)
   @UseInterceptors(
     FileFieldsInterceptor([
-      { name: 'internshipApplicationFile', maxCount: 1 },
-      { name: 'intershipExtensionFile', maxCount: 1 },
+      { name: 'internshipApplicationFile' },
+      { name: 'intershipExtensionFile' },
     ]),
   )
   async createInternshipExtension(
-    @GetCurrentUser('nim') nim: string,
+    @GetCurrentUser('nim') studentNimApply: string,
     @Body() createInternshipExtensionDto: CreateInternshipExtensionDto,
     @UploadedFiles()
     files: {
-      internshipApplicationFile: Express.Multer.File[];
-      intershipExtensionFile: Express.Multer.File[];
+      internshipApplicationFile: Express.Multer.File;
+      intershipExtensionFile: Express.Multer.File;
     },
   ) {
-    const internshipApplicationFile = files.internshipApplicationFile?.[0];
-    const intershipExtensionFile = files.intershipExtensionFile?.[0];
+    const internshipApplicationFile = files?.internshipApplicationFile?.[0];
+    const intershipExtensionFile = files?.intershipExtensionFile?.[0];
+
+    if (!internshipApplicationFile || !intershipExtensionFile)
+      throw new BadRequestException(
+        'Internship application & internship extension file must be provided',
+      );
 
     return await this.internshipService.createInternshipExtension({
       ...createInternshipExtensionDto,
-      nim,
+      studentNimApply,
       internshipApplicationFile,
       intershipExtensionFile,
     });
@@ -77,22 +124,24 @@ export class InternshipController {
   @Post('cancellation')
   @Message('Success create internship cancellation')
   @Auth(Role.STUDENT)
-  @UseInterceptors(FileInterceptor('supportingDocument'))
+  @UseInterceptors(FileInterceptor('supportingDocumentFile'))
   async createInternshipCancellation(
-    @GetCurrentUser('nim') nim: string,
+    @GetCurrentUser('nim') studentNimApply: string,
     @Body() createInternshipCancellationDto: CreateInternshipCancellationDto,
-    @UploadedFile() supportingDocument: Express.Multer.File,
+    @UploadedFile() supportingDocumentFile: Express.Multer.File,
   ) {
+    if (!supportingDocumentFile)
+      throw new BadRequestException('Supporting document must be provided');
     return await this.internshipService.createInternshipCancellation({
       ...createInternshipCancellationDto,
-      nim,
-      supportingDocument,
+      studentNimApply,
+      supportingDocumentFile,
     });
   }
 
   @Patch(':id/status')
   @Message('Success update status document')
-  @Auth(Role.ACADEMIC, Role.HEAD_LECTURER)
+  @Auth(Role.ACADEMIC, Role.HEAD_STUDY_PROGRAM)
   async updateSuccessStatus(
     @Param('id') documentId: string,
     @Body() updateStatusDocumentDto: UpdateStatusDocumentDto,
@@ -101,5 +150,12 @@ export class InternshipController {
       documentId,
       ...updateStatusDocumentDto,
     });
+  }
+
+  @Get('status')
+  @Message('Success get status')
+  @Auth(Role.STUDENT)
+  async getStatus(@GetCurrentUser('nim') nim: string) {
+    return await this.internshipService.getStatus(nim);
   }
 }

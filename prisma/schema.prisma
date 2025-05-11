@@ -51,8 +51,7 @@ model Student{
   
   logbooks Logbook[]
   documents Document[]
-
-  announcementReads AnnouncementRead[]
+  notificationReads NotificationRead[]
 
 
   @@map("students")
@@ -89,9 +88,7 @@ model Announcement{
   fileUrl String?
 
   academicNip String
-  academic Academic @relation(fields: [academicNip],references: [nip])
-
-  announcementReads AnnouncementRead[]
+  academic Academic @relation(fields: [academicNip],references: [nip])  
 
   @@map("announcements")
 }
@@ -101,19 +98,29 @@ enum Status{
   READ
 }
 
-model AnnouncementRead{
+model Notification{
   id String @id @default(uuid())
+  title String
+  content String
+  fileUrl String?    
+  
+  notificationReads NotificationRead[]
+  
+  @@map("notifications")
+}
+
+
+model NotificationRead{
+  notificationId String
+  studentNim String
   status Status @default(UNREAD)
   readAt DateTime?
 
-  studentNim String
+  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
   student Student @relation(fields: [studentNim],references: [nim])
 
-  announcementId String
-  announcement Announcement @relation(fields: [announcementId],references: [announcementId])
-
-  @@unique([studentNim,announcementId])
-  @@map("announcementReads")
+  @@id([notificationId,studentNim])
+  @@map("notificationReads")
 }
 
 
@@ -122,8 +129,10 @@ model Logbook{
   description String
   imageUrl String
   imageOriginalName String
+  duration Int
   createdAt DateTime @default(now())
   updatedAt DateTime?
+  note String? @db.Text
 
   nim String  
   student Student @relation(fields: [nim],references: [nim],onDelete: Cascade)
@@ -155,10 +164,12 @@ model Consultation{
 }
 
 enum DocumentStatus{
-  SUCCESS
-  FAILED
-  AWAITING_ACADEMIC_REVIEW
-  AWAITING_LECTURER_SIGN
+  DOCUMENT_VERIFICATION 
+  DOCUMENT_REVISION 
+  LECTURER_SIGNATURE_PROCESS 
+  SUPERVISOR_SELECTION 
+  SUPERVISOR_CONFIRMATION 
+  COMPLETED 
 }
 
 model Document{
@@ -166,47 +177,76 @@ model Document{
   name String
   nim String
   phoneNumber String
-  totalSks String
   email String
-  nameOfAgency String
-  agencyAddress String
   createdAt DateTime @default(now())
-  status DocumentStatus @default(AWAITING_ACADEMIC_REVIEW)
-  rejectionReason String? @db.Text
+  status DocumentStatus @default(DOCUMENT_VERIFICATION)
+  rejectionReason String? @db.Text  
+  isGroup Boolean
 
   studentNim String
-  student Student @relation(fields: [studentNim],references: [nim])
+  student Student @relation(fields: [studentNim],references: [nim])  
 
-  internshipApplication InternshipApplication?
+  internshipApplicationCompany InternshipApplicationCompany?
+  internshipApplicationCompetition InternshipApplicationCompetition?
   internshipExtension InternshipExtension?
   internshipCancellation InternshipCancellation?
   
   @@map("documents")
 }
 
-enum InternshipType {
-  COMPANY
-  COMPETITION
+
+model InternshipApplicationCompany{
+  documentId String @id  
+  agencyName String
+  agencyAddress String
+  totalSks String
+  startDate DateTime
+  finishDate DateTime
+  internshipObject String
+  recipientOfLetter String
+  studyResultCardUrl String
+  letterApprovalSupervisorUrl String?
+  coverLetterUrl String?
+
+  document Document @relation(fields: [documentId], references: [documentId], onDelete: Cascade)  
+
+
+  @@map("internshipApplicationCompanies")
 }
 
-model InternshipApplication{
+model InternshipApplicationCompetition{
   documentId String @id
-  type InternshipType
-  recipientOfLetter String
-  internshipObject String
-  startDate DateTime
+  totalSks String
+  competitionName String
+  competitionSupervisor String
+  competitionCategory String
+  competitionOrganizer String
+  competitionInformation String
+  competitionLevel String
+  competitionWinner String
+  competitionProduct String
+  competitionStartDate DateTime
+  competitionFinishDate DateTime
+
   studyResultCardUrl String
+  proposalCompetitionSertificationUrl String  
+  internshipVerificationCompetitionLetterUrl String?
+  internshipDeterminationCompetitionLetterUrl String?
+  letterApprovalSupervisorUrl String?
 
-  document Document @relation(fields: [documentId], references: [documentId], onDelete: Cascade)
-
-
-  @@map("internshipAppilcations")
+  document Document @relation(fields: [documentId], references: [documentId], onDelete: Cascade)  
+  @@map("internshipApplicationCompetitions")
 }
 
 model InternshipExtension{
   documentId String @id
-  startDate DateTime
-  submissionDate DateTime
+  totalSks String
+  agencyName String
+  agencyAddress String
+  startDatePeriod DateTime
+  finishDatePeriod DateTime
+  startExtensionDatePeriod DateTime    
+  finishExtensionDatePeriod DateTime
   reasonExtension String @db.Text
   internshipApplicationFileUrl String
   internshipExtensionFileUrl String
@@ -218,18 +258,19 @@ model InternshipExtension{
 
 model InternshipCancellation{
   documentId String @id
-  recipientOfLetter String
-  reasonCancellation String @db.Text
-
-  document Document @relation(fields: [documentId],references: [documentId],onDelete: Cascade)
+  agencyName String
+  agencyAddress String
+  cancellationReason String  
   supportingDocumentUrl String
 
+  document Document @relation(fields: [documentId],references: [documentId],onDelete: Cascade)
 
   @@map("internshipCancellations")
 }
 
 model Partner {
   partnerId String @id @default(uuid())
+  email String @unique
   name String 
   address String
   description String
@@ -239,3 +280,4 @@ model Partner {
 
   @@map("partners")
 }
+

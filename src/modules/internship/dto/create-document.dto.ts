@@ -1,27 +1,43 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
+import { ValidateGroupField } from 'src/commons/decorators/validate-group.decorator';
 
 export class CreateDocumentDto {
   @IsNotEmpty()
   @IsString()
+  @ValidateGroupField({ type: 'string', groupField: 'isGroup' })
   name: string;
 
   @IsNotEmpty()
   @IsString()
-  phoneNumber: string;
+  @MinLength(15)
+  @MaxLength(47)
+  @ValidateGroupField({ type: 'string', groupField: 'isGroup' })
+  nim: string;
 
   @IsNotEmpty()
   @IsString()
-  totalSks: string;
-
-  @IsNotEmpty()
-  @IsString()
+  @ValidateGroupField({
+    type: 'email',
+    groupField: 'isGroup',
+    emailDomain: '@student.ub.ac.id',
+  })
   email: string;
 
   @IsNotEmpty()
   @IsString()
-  nameOfAgency: string;
+  @MinLength(12)
+  @MaxLength(12)
+  phoneNumber: string;
 
   @IsNotEmpty()
-  @IsString()
-  agencyAddress: string;
+  @Transform(({ value }) => value === 'true' || value == true)
+  @IsBoolean()
+  isGroup: boolean;
 }

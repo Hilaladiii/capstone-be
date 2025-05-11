@@ -4,9 +4,13 @@ import { CreateDocumentDto } from './create-document.dto';
 export class CreateInternshipCancellationDto extends CreateDocumentDto {
   @IsNotEmpty()
   @IsString()
-  recipientOfLetter: string;
+  agencyName: string;
 
   @IsNotEmpty()
   @IsString()
-  reasonCancellation: string;
+  agencyAddress: string;
+
+  @IsNotEmpty()
+  @IsString()
+  cancellationReason: string;
 }
