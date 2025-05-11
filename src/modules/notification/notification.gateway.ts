@@ -1,15 +1,13 @@
-import { UseGuards } from '@nestjs/common';
 import {
   ConnectedSocket,
   OnGatewayConnection,
   OnGatewayDisconnect,
-  SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { SocketWithUser } from 'src/commons/types/notification.type';
-import { WsJwtGuard } from 'src/providers/guards/ws-jwt.guard';
+import { JwtCoreService } from '../jwt-core/jwt-core.service';
 
 @WebSocketGateway(8000, {
   cors: {
@@ -21,14 +19,19 @@ export class NotificationGateway
 {
   @WebSocketServer()
   server: Server;
+  client: Socket;
 
-  @SubscribeMessage('join-student-room')
-  @UseGuards(WsJwtGuard)
-  handleJoinRoom(@ConnectedSocket() client: SocketWithUser) {
+  constructor(private jwtCoreService: JwtCoreService) {}
+
+  handleConnection(@ConnectedSocket() client: SocketWithUser) {
+    const payload = this.jwtCoreService.verifyClient(client);
+    client.user = payload;
     client.join(`student_${client.user.nim}`);
-    client.emit('joined-room', { success: true });
   }
 
-  handleConnection(client: any, ...args: any[]) {}
-  handleDisconnect(client: any) {}
+  handleDisconnect(@ConnectedSocket() client: SocketWithUser) {
+    const payload = this.jwtCoreService.verifyClient(client);
+    client.user = payload;
+    client.leave(`student_${client.user.nim}`);
+  }
 }
