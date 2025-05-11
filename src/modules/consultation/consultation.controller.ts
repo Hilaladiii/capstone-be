@@ -26,7 +26,7 @@ export class ConsultationController {
 
   @Patch(':id')
   @Message('Success send feedback consultation')
-  @Auth(Role.HEAD_LECTURER)
+  @Auth(Role.HEAD_STUDY_PROGRAM)
   async sendFeedbackConsulation(
     @Param('id') consultationId: string,
     @Body() createFeedbackConsultationDto: CreateFeedbackConsultationDto,
@@ -46,7 +46,7 @@ export class ConsultationController {
 
   @Get('head-lecturer')
   @Message('Success get student consulatation')
-  @Auth(Role.HEAD_LECTURER)
+  @Auth(Role.HEAD_STUDY_PROGRAM)
   async getHeadLecturerConsultation(@GetCurrentUser('nip') nip: string) {
     return await this.consultationService.getHeadLecturerConsultations(nip);
   }

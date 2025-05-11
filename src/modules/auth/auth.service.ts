@@ -62,9 +62,12 @@ export class AuthService {
     const isStudentRole = roles.includes(Role.STUDENT) && user.student?.nim;
     const isAcademicRole = roles.includes(Role.ACADEMIC) && user.academic?.nip;
     const isLecturerRole =
-      [Role.HEAD_LECTURER, Role.SUPERVISOR, Role.LECTURER].some((role) =>
-        roles.includes(role),
-      ) && user.lecturer?.nip;
+      [
+        Role.HEAD_DEPARTEMENT,
+        Role.HEAD_STUDY_PROGRAM,
+        Role.SUPERVISOR,
+        Role.LECTURER,
+      ].some((role) => roles.includes(role)) && user.lecturer?.nip;
 
     if (isStudentRole) {
       const claim: JwtStudentClaim = {

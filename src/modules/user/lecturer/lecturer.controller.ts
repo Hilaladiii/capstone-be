@@ -18,7 +18,7 @@ export class LecturerController {
 
   @Post('student/:nim/supervisor')
   @Message('Success connect supervisor with student')
-  @Auth(Role.HEAD_LECTURER)
+  @Auth(Role.HEAD_STUDY_PROGRAM)
   async connectSupervisorStudent(
     @Param('nim') nim: string,
     @Body() { nip }: ConnectSupervisorDto,
