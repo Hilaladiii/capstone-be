@@ -4,6 +4,7 @@ import { CreateAnnoucementDto } from './dto/create-annoucement.dto';
 import { SupabaseService } from '../supabase/supabase.service';
 import { UpdateAnnouncementDto } from './dto/update-announcement.dto';
 import { NotificationService } from '../notification/notification.service';
+import { paginationHelper } from 'src/commons/helpers/pagination.helper';
 
 @Injectable()
 export class AnnouncementService {
@@ -109,14 +110,50 @@ export class AnnouncementService {
     });
   }
 
-  async getAll() {
-    return await this.prismaService.announcement.findMany({
+  async getAll({
+    currPage,
+    dataPerPage,
+    title = '',
+    orderBy = 'asc',
+  }: {
+    currPage?: number;
+    dataPerPage?: number;
+    title?: string;
+    orderBy?: 'asc' | 'desc';
+  }) {
+    const whereOption = {
+      title: {
+        contains: title,
+      },
+    };
+    const totalAnnouncements = await this.prismaService.announcement.count({
+      where: whereOption,
+    });
+    const { offset, totalCount, totalPage } = paginationHelper(
+      currPage,
+      dataPerPage,
+      totalAnnouncements,
+    );
+
+    const announcements = await this.prismaService.announcement.findMany({
+      skip: offset,
+      take: dataPerPage,
       select: {
         announcementId: true,
         title: true,
         createdAt: true,
       },
+      where: whereOption,
+      orderBy: {
+        createdAt: orderBy,
+      },
     });
+
+    return {
+      announcements,
+      totalCount,
+      totalPage,
+    };
   }
 
   async getById(announcementId: string) {

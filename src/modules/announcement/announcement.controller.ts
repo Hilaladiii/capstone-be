@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
@@ -88,8 +89,18 @@ export class AnnouncementController {
   @Get()
   @Message('Success get all announcement')
   @Auth()
-  async getAll() {
-    return await this.announcementService.getAll();
+  async getAll(
+    @Query('title') title: string,
+    @Query('currPage') currPage: string,
+    @Query('dataPerPage') dataPerPage: string,
+    @Query('orderBy') orderBy: 'asc' | 'desc',
+  ) {
+    return await this.announcementService.getAll({
+      title,
+      currPage: Number(currPage),
+      dataPerPage: Number(dataPerPage),
+      orderBy,
+    });
   }
 
   @Get(':id')
