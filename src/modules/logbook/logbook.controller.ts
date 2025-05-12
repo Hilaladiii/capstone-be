@@ -5,6 +5,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Put,
   UploadedFile,
@@ -18,6 +19,7 @@ import { Role } from 'src/commons/types/role.type';
 import { GetCurrentUser } from 'src/commons/decorators/get-current-user.decorator';
 import { UpdateLogbookDto } from './dto/update-logbook.dto';
 import { Auth } from 'src/commons/decorators/auth.decorator';
+import { CreateFeedbackLogbookDto } from './dto/create-feedback-logbook.dto';
 
 @Controller('logbook')
 export class LogbookController {
@@ -32,13 +34,12 @@ export class LogbookController {
     @GetCurrentUser('nim') nim: string,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    console.log(file);
     if (!file) throw new BadRequestException('File is required');
-    return await this.logbookService.create(
+    return await this.logbookService.create({
       nim,
-      createLogbookDto.description,
       file,
-    );
+      ...createLogbookDto,
+    });
   }
 
   @Get('student')
@@ -71,8 +72,23 @@ export class LogbookController {
     @Body() updateLogbookDto: UpdateLogbookDto,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    if (!updateLogbookDto?.description && !file)
-      throw new BadRequestException('Description or file must be provided');
+    if (!updateLogbookDto.description && !updateLogbookDto.duration && !file)
+      throw new BadRequestException(
+        'Description, file, or duration must be provided',
+      );
     return await this.logbookService.update(id, updateLogbookDto, file);
+  }
+
+  @Patch(':id')
+  @Message('Success send feedback logbook')
+  @Auth(Role.LECTURER)
+  async sendFeedbackLogbook(
+    @Param('id') logbookId: string,
+    @Body() { note }: CreateFeedbackLogbookDto,
+  ) {
+    return await this.logbookService.sendFeedbackLogbook({
+      logbookId,
+      note,
+    });
   }
 }

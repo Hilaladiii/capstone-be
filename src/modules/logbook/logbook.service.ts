@@ -7,6 +7,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { UpdateLogbookDto } from './dto/update-logbook.dto';
 import { Logbook } from '@prisma/client';
+import { CreateFeedbackLogbookDto } from './dto/create-feedback-logbook.dto';
+import { CreateLogbookDto } from './dto/create-logbook.dto';
 
 @Injectable()
 export class LogbookService {
@@ -15,7 +17,14 @@ export class LogbookService {
     private supabaseService: SupabaseService,
   ) {}
 
-  async create(nim: string, description: string, image: Express.Multer.File) {
+  async create({
+    nim,
+    file,
+    ...rest
+  }: CreateLogbookDto & {
+    nim: string;
+    file: Express.Multer.File;
+  }) {
     const student = await this.prismaService.student.findUnique({
       where: {
         nim,
@@ -25,12 +34,12 @@ export class LogbookService {
     if (!student)
       throw new BadRequestException('Student with this nim not registered');
 
-    const { publicUrl } = await this.supabaseService.upload(image, 'logbook');
+    const { publicUrl } = await this.supabaseService.upload(file, 'logbook');
 
     return await this.prismaService.logbook.create({
       data: {
-        description,
-        imageOriginalName: image.originalname,
+        ...rest,
+        imageOriginalName: file.originalname,
         imageUrl: publicUrl,
         student: {
           connect: {
@@ -54,26 +63,21 @@ export class LogbookService {
 
     if (!logbook) throw new NotFoundException('logbook not found');
 
-    const updateData: any = {};
-
-    if (updateLogbookDto?.description)
-      updateData.description = updateLogbookDto.description;
-
+    let imageData: any = {};
     if (file) {
       await this.supabaseService.delete(logbook.imageOriginalName, 'logbook');
       const { publicUrl } = await this.supabaseService.upload(file, 'logbook');
-      updateData.imageUrl = publicUrl;
-      updateData.imageOriginalName = file.originalname;
+      imageData.imageUrl = publicUrl;
+      imageData.imageOriginalName = file.originalname;
     }
-
-    updateData.updatedAt = new Date();
 
     return await this.prismaService.logbook.update({
       where: {
         logbookId,
       },
       data: {
-        ...updateData,
+        ...updateLogbookDto,
+        ...imageData,
       },
     });
   }
@@ -125,5 +129,31 @@ export class LogbookService {
       throw new NotFoundException('logbooks not found');
 
     return logbooks;
+  }
+
+  async getById(logbookId: string) {
+    const logbook = await this.prismaService.logbook.findUnique({
+      where: {
+        logbookId,
+      },
+    });
+
+    if (!logbook) throw new NotFoundException('Logbook not found');
+    return logbook;
+  }
+
+  async sendFeedbackLogbook({
+    logbookId,
+    note,
+  }: CreateFeedbackLogbookDto & { logbookId: string }) {
+    await this.getById(logbookId);
+    return await this.prismaService.logbook.update({
+      data: {
+        note,
+      },
+      where: {
+        logbookId,
+      },
+    });
   }
 }
