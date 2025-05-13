@@ -218,7 +218,7 @@ model DocumentFile{
   signed Boolean @default(false)
   createdAt DateTime @default(now())
 
-  document Document @relation(fields: [documentId],references: [documentId])
+  document Document @relation(fields: [documentId],references: [documentId], onDelete: Cascade)
 
   @@map("documentFiles")
 }

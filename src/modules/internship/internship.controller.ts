@@ -154,6 +154,9 @@ export class InternshipController {
       {
         name: 'coverLetterFile',
       },
+      {
+        name: 'studyResultCardFile',
+      },
     ]),
   )
   async updateInternshipCompany(
@@ -163,15 +166,117 @@ export class InternshipController {
     files: {
       letterApprovalSupervisorFile: Express.Multer.File;
       coverLetterFile: Express.Multer.File;
+      studyResultCardFile: Express.Multer.File;
     },
   ) {
-    const letterApprovalSupervisorFile = files.letterApprovalSupervisorFile;
-    const coverLetterFile = files.coverLetterFile;
-    return await this.internshipService.upadateInternshipCompany({
+    const letterApprovalSupervisorFile =
+      files?.letterApprovalSupervisorFile?.[0];
+    const coverLetterFile = files?.coverLetterFile?.[0];
+    const studyResultCardFile = files?.studyResultCardFile?.[0];
+
+    return await this.internshipService.updateInternshipCompany({
       documentId,
       ...updateStatusDocumentDto,
       letterApprovalSupervisorFile,
+      studyResultCardFile,
       coverLetterFile,
+    });
+  }
+
+  @Patch(':id/competition')
+  @Message('Success update status document application competition')
+  @Auth()
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      {
+        name: 'internshipVerificationCompetitionLetterFile',
+      },
+      {
+        name: 'internshipDeterminationCompetitionLetterFile',
+      },
+      {
+        name: 'studyResultCardFile',
+      },
+      {
+        name: 'proposalCompetitionSertificationFile',
+      },
+    ]),
+  )
+  async updateInternshipCompetition(
+    @Param('id') documentId: string,
+    @Body() updateStatusDocumentDto: UpdateStatusDocumentDto,
+    @UploadedFiles()
+    files: {
+      internshipVerificationCompetitionLetterFile: Express.Multer.File;
+      internshipDeterminationCompetitionLetterFile: Express.Multer.File;
+      studyResultCardFile: Express.Multer.File;
+      proposalCompetitionSertificationFile: Express.Multer.File;
+    },
+  ) {
+    const internshipVerificationCompetitionLetterFile =
+      files?.internshipVerificationCompetitionLetterFile?.[0];
+    const internshipDeterminationCompetitionLetterFile =
+      files?.internshipDeterminationCompetitionLetterFile?.[0];
+    const studyResultCardFile = files?.studyResultCardFile?.[0];
+    const proposalCompetitionSertificationFile =
+      files?.proposalCompetitionSertificationFile?.[0];
+
+    return await this.internshipService.updateInternshipCompetition({
+      documentId,
+      ...updateStatusDocumentDto,
+      internshipVerificationCompetitionLetterFile,
+      internshipDeterminationCompetitionLetterFile,
+      studyResultCardFile,
+      proposalCompetitionSertificationFile,
+    });
+  }
+
+  @Patch(':id/extension')
+  @Message('Success update status document application extension')
+  @Auth()
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      {
+        name: 'internshipApplicationFile',
+      },
+      {
+        name: 'internshipExtensionFile',
+      },
+    ]),
+  )
+  async updateInternshipExtension(
+    @Param('id') documentId: string,
+    @Body() updateStatusDocumentDto: UpdateStatusDocumentDto,
+    @UploadedFiles()
+    files: {
+      internshipApplicationFile: Express.Multer.File;
+      internshipExtensionFile: Express.Multer.File;
+    },
+  ) {
+    const internshipApplicationFile = files?.internshipApplicationFile?.[0];
+    const internshipExtensionFile = files?.internshipExtensionFile?.[0];
+
+    return await this.internshipService.updateInternshipExtension({
+      documentId,
+      ...updateStatusDocumentDto,
+      internshipExtensionFile,
+      internshipApplicationFile,
+    });
+  }
+
+  @Patch(':id/cancellation')
+  @Message('Success update status document application cancellation')
+  @Auth()
+  @UseInterceptors(FileInterceptor('supportingDocument'))
+  async updateInternshipCancellation(
+    @Param('id') documentId: string,
+    @Body() updateStatusDocumentDto: UpdateStatusDocumentDto,
+    @UploadedFile() supportingDocument: Express.Multer.File,
+  ) {
+    return await this.internshipService.updateInternshipCancellation({
+      documentId,
+      ...updateStatusDocumentDto,
+      supportingDocument,
     });
   }
 

@@ -275,20 +275,32 @@ export class InternshipService {
     });
   }
 
-  async upadateInternshipCompany({
+  async updateInternshipCompany({
     documentId,
     status,
     rejectionReason,
     letterApprovalSupervisorFile,
     coverLetterFile,
+    studyResultCardFile,
   }: UpdateStatusDocumentDto & {
     documentId: string;
     letterApprovalSupervisorFile: Express.Multer.File;
     coverLetterFile: Express.Multer.File;
+    studyResultCardFile: Express.Multer.File;
   }) {
     const document = await this.getById(documentId);
 
     await this.rejectDocument({ status, rejectionReason, documentId });
+
+    if (studyResultCardFile) {
+      return await this.replaceDocumentFile({
+        documentId,
+        file: studyResultCardFile,
+        type: DocumentFileType.STUDY_RESULT_CARD,
+        nim: document.studentNim,
+        status,
+      });
+    }
 
     if (letterApprovalSupervisorFile) {
       return await this.replaceDocumentFile({
@@ -296,6 +308,7 @@ export class InternshipService {
         file: letterApprovalSupervisorFile,
         type: DocumentFileType.LETTER_APPROVAL_SUPERVISOR,
         nim: document.studentNim,
+        status,
       });
     }
 
@@ -305,6 +318,127 @@ export class InternshipService {
         file: coverLetterFile,
         type: DocumentFileType.COVER_LETTER,
         nim: document.studentNim,
+        status,
+      });
+    }
+  }
+
+  async updateInternshipCompetition({
+    documentId,
+    status,
+    rejectionReason,
+    internshipDeterminationCompetitionLetterFile,
+    internshipVerificationCompetitionLetterFile,
+    studyResultCardFile,
+    proposalCompetitionSertificationFile,
+  }: UpdateStatusDocumentDto & {
+    documentId: string;
+    internshipVerificationCompetitionLetterFile: Express.Multer.File;
+    internshipDeterminationCompetitionLetterFile: Express.Multer.File;
+    studyResultCardFile: Express.Multer.File;
+    proposalCompetitionSertificationFile: Express.Multer.File;
+  }) {
+    const document = await this.getById(documentId);
+
+    await this.rejectDocument({ status, rejectionReason, documentId });
+
+    if (studyResultCardFile) {
+      return await this.replaceDocumentFile({
+        documentId,
+        file: studyResultCardFile,
+        type: DocumentFileType.STUDY_RESULT_CARD,
+        nim: document.studentNim,
+        status,
+      });
+    }
+
+    if (internshipVerificationCompetitionLetterFile) {
+      return await this.replaceDocumentFile({
+        documentId,
+        file: internshipVerificationCompetitionLetterFile,
+        type: DocumentFileType.INTERNSHIP_VERIFICATION_COMPETITION_LETTER,
+        nim: document.studentNim,
+        status,
+      });
+    }
+
+    if (internshipDeterminationCompetitionLetterFile) {
+      return await this.replaceDocumentFile({
+        documentId,
+        file: internshipDeterminationCompetitionLetterFile,
+        type: DocumentFileType.COVER_LETTER,
+        nim: document.studentNim,
+        status,
+      });
+    }
+
+    if (proposalCompetitionSertificationFile) {
+      return await this.replaceDocumentFile({
+        documentId,
+        file: proposalCompetitionSertificationFile,
+        type: DocumentFileType.PROPOSAL_COMPETITION_CERTIFICATION,
+        nim: document.studentNim,
+        status,
+      });
+    }
+  }
+
+  async updateInternshipExtension({
+    documentId,
+    status,
+    rejectionReason,
+    internshipApplicationFile,
+    internshipExtensionFile,
+  }: UpdateStatusDocumentDto & {
+    documentId: string;
+    internshipApplicationFile: Express.Multer.File;
+    internshipExtensionFile: Express.Multer.File;
+  }) {
+    const document = await this.getById(documentId);
+
+    await this.rejectDocument({ status, rejectionReason, documentId });
+
+    if (internshipApplicationFile) {
+      return await this.replaceDocumentFile({
+        documentId,
+        file: internshipApplicationFile,
+        type: DocumentFileType.INTERNSHIP_APPLICATION_FILE,
+        nim: document.studentNim,
+        status,
+      });
+    }
+
+    if (internshipExtensionFile) {
+      return await this.replaceDocumentFile({
+        documentId,
+        file: internshipExtensionFile,
+        type: DocumentFileType.INTERNSHIP_EXTENSION_FILE,
+        nim: document.studentNim,
+        status,
+      });
+    }
+  }
+
+  async updateInternshipCancellation({
+    documentId,
+    status,
+    rejectionReason,
+    supportingDocument,
+  }: UpdateStatusDocumentDto & {
+    documentId: string;
+    supportingDocument: Express.Multer.File;
+  }) {
+    const document = await this.getById(documentId);
+
+    await this.rejectDocument({ status, rejectionReason, documentId });
+
+    if (supportingDocument) {
+      return await this.replaceDocumentFile({
+        documentId,
+        file: supportingDocument,
+        type: DocumentFileType.SUPPORTING_DOCUMENT,
+        nim: document.studentNim,
+        status,
       });
     }
   }
@@ -378,19 +512,21 @@ export class InternshipService {
     type,
     signed = false,
     nim,
+    status,
   }: {
     documentId: string;
     file: Express.Multer.File;
     type: DocumentFileType;
     signed?: boolean;
     nim: string;
+    status: DocumentStatus;
   }) {
     const existingFile = await this.prismaService.documentFile.findFirst({
       where: {
-        documentId,
-        type,
+        AND: [{ documentId }, { type }],
       },
     });
+
     if (existingFile) {
       await Promise.all([
         this.supabaseService.delete(existingFile.originalName, 'documents'),
@@ -401,27 +537,40 @@ export class InternshipService {
         }),
       ]);
     }
-
     const { fileUrl, originalName } = await this.supabaseService.upload(
       file,
       'documents',
     );
 
-    const document = await this.prismaService.documentFile.create({
+    const document = await this.prismaService.document.update({
       data: {
+        status,
+        documentFiles: {
+          create: {
+            fileUrl,
+            originalName,
+            type,
+            signed,
+          },
+        },
+      },
+      where: {
         documentId,
-        fileUrl,
-        originalName,
-        type,
-        signed,
+      },
+      include: {
+        documentFiles: {
+          select: {
+            originalName: true,
+          },
+        },
       },
     });
 
     if (signed) {
       await this.notificationService.sendNotificationToStudent({
         nim,
-        title: `Dokumen ${document.type} sudah ditandatangani`,
-        content: `Dokumen ${document.type} sudah ditandatangani dan tersedia.`,
+        title: `Dokumen sudah ditandatangani`,
+        content: `Dokumen ${document.documentFiles[0].originalName} sudah ditandatangani dan tersedia.`,
         fileUrl: fileUrl,
       });
     }
