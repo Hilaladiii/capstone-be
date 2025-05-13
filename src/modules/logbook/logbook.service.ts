@@ -34,13 +34,13 @@ export class LogbookService {
     if (!student)
       throw new BadRequestException('Student with this nim not registered');
 
-    const { publicUrl } = await this.supabaseService.upload(file, 'logbook');
+    const { fileUrl } = await this.supabaseService.upload(file, 'logbook');
 
     return await this.prismaService.logbook.create({
       data: {
         ...rest,
         imageOriginalName: file.originalname,
-        imageUrl: publicUrl,
+        imageUrl: fileUrl,
         student: {
           connect: {
             nim,
@@ -66,8 +66,8 @@ export class LogbookService {
     let imageData: any = {};
     if (file) {
       await this.supabaseService.delete(logbook.imageOriginalName, 'logbook');
-      const { publicUrl } = await this.supabaseService.upload(file, 'logbook');
-      imageData.imageUrl = publicUrl;
+      const { fileUrl } = await this.supabaseService.upload(file, 'logbook');
+      imageData.imageUrl = fileUrl;
       imageData.imageOriginalName = file.originalname;
     }
 

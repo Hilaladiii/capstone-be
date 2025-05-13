@@ -102,7 +102,7 @@ model Notification{
   id String @id @default(uuid())
   title String
   content String
-  fileUrl String?    
+  fileUrl String?      
   
   notificationReads NotificationRead[]
   
@@ -166,7 +166,8 @@ model Consultation{
 enum DocumentStatus{
   DOCUMENT_VERIFICATION 
   DOCUMENT_REVISION 
-  LECTURER_SIGNATURE_PROCESS 
+  HEAD_LECTURER_SIGNATURE_PROCESS 
+  UPLOAD_REPLY_DOCUMENT
   SUPERVISOR_SELECTION 
   SUPERVISOR_CONFIRMATION 
   COMPLETED 
@@ -190,8 +191,36 @@ model Document{
   internshipApplicationCompetition InternshipApplicationCompetition?
   internshipExtension InternshipExtension?
   internshipCancellation InternshipCancellation?
+
+  documentFiles DocumentFile[]
   
   @@map("documents")
+}
+
+enum DocumentFileType {
+  STUDY_RESULT_CARD
+  LETTER_APPROVAL_SUPERVISOR
+  COVER_LETTER
+  PROPOSAL_COMPETITION_CERTIFICATION
+  INTERNSHIP_VERIFICATION_COMPETITION_LETTER
+  INTERNSHIP_DETERMINATION_COMPETITION_LETTER
+  INTERNSHIP_APPLICATION_FILE
+  INTERNSHIP_EXTENSION_FILE
+  SUPPORTING_DOCUMENT
+}
+
+model DocumentFile{
+  fileId String @id @default(uuid())
+  documentId String
+  type DocumentFileType
+  fileUrl String
+  originalName String
+  signed Boolean @default(false)
+  createdAt DateTime @default(now())
+
+  document Document @relation(fields: [documentId],references: [documentId])
+
+  @@map("documentFiles")
 }
 
 
@@ -204,9 +233,6 @@ model InternshipApplicationCompany{
   finishDate DateTime
   internshipObject String
   recipientOfLetter String
-  studyResultCardUrl String
-  letterApprovalSupervisorUrl String?
-  coverLetterUrl String?
 
   document Document @relation(fields: [documentId], references: [documentId], onDelete: Cascade)  
 
@@ -228,13 +254,8 @@ model InternshipApplicationCompetition{
   competitionStartDate DateTime
   competitionFinishDate DateTime
 
-  studyResultCardUrl String
-  proposalCompetitionSertificationUrl String  
-  internshipVerificationCompetitionLetterUrl String?
-  internshipDeterminationCompetitionLetterUrl String?
-  letterApprovalSupervisorUrl String?
-
   document Document @relation(fields: [documentId], references: [documentId], onDelete: Cascade)  
+
   @@map("internshipApplicationCompetitions")
 }
 
@@ -248,9 +269,7 @@ model InternshipExtension{
   startExtensionDatePeriod DateTime    
   finishExtensionDatePeriod DateTime
   reasonExtension String @db.Text
-  internshipApplicationFileUrl String
-  internshipExtensionFileUrl String
-
+  
   document Document @relation(fields: [documentId],references: [documentId],onDelete: Cascade)
 
   @@map("internshipExtensions")
@@ -260,8 +279,7 @@ model InternshipCancellation{
   documentId String @id
   agencyName String
   agencyAddress String
-  cancellationReason String  
-  supportingDocumentUrl String
+  cancellationReason String    
 
   document Document @relation(fields: [documentId],references: [documentId],onDelete: Cascade)
 

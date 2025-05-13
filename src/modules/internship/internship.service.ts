@@ -4,13 +4,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { SupabaseService } from '../supabase/supabase.service';
+import { NotificationService } from '../notification/notification.service';
+import { DocumentFileType, DocumentStatus } from '@prisma/client';
 import { CreateInternshipApplicationCompanyDto } from './dto/create-internship-application-company.dto';
 import { CreateInternshipExtensionDto } from './dto/create-internship-extension.dto';
-import { SupabaseService } from '../supabase/supabase.service';
 import { CreateInternshipCancellationDto } from './dto/create-internship-cancellation.dto';
-import { DocumentStatus } from '@prisma/client';
-import { NotificationService } from '../notification/notification.service';
 import { CreateInternshipApplicationCompetitionDto } from './dto/create-internship-application-competition';
+import { UpdateStatusDocumentDto } from './dto/update-status-document.dto';
 
 @Injectable()
 export class InternshipService {
@@ -43,7 +44,7 @@ export class InternshipService {
 
     if (!student) throw new NotFoundException('student not found');
 
-    const { publicUrl: studyResultCardUrl } = await this.supabaseService.upload(
+    const studyResultCard = await this.supabaseService.upload(
       studyResultCardFile,
       'documents',
     );
@@ -60,7 +61,12 @@ export class InternshipService {
             finishDate: new Date(finishDate),
             internshipObject,
             recipientOfLetter,
-            studyResultCardUrl,
+          },
+        },
+        documentFiles: {
+          create: {
+            ...studyResultCard,
+            type: DocumentFileType.STUDY_RESULT_CARD,
           },
         },
         student: {
@@ -101,16 +107,14 @@ export class InternshipService {
 
     if (!student) throw new NotFoundException('student not found');
 
-    const { publicUrl: studyResultCardUrl } = await this.supabaseService.upload(
-      studyResultCardFile,
-      'documents',
-    );
-
-    const { publicUrl: proposalCompetitionSertificationUrl } =
-      await this.supabaseService.upload(
-        proposalCompetitionSertificationFile,
-        'documents',
-      );
+    const [studyResultCard, proposalCompetitionSertification] =
+      await Promise.all([
+        this.supabaseService.upload(studyResultCardFile, 'documents'),
+        this.supabaseService.upload(
+          proposalCompetitionSertificationFile,
+          'documents',
+        ),
+      ]);
 
     return await this.prismaService.document.create({
       data: {
@@ -128,8 +132,20 @@ export class InternshipService {
             competitionProduct,
             competitionStartDate: new Date(competitionStartDate),
             competitionFinishDate: new Date(competitionFinishDate),
-            studyResultCardUrl,
-            proposalCompetitionSertificationUrl,
+          },
+        },
+        documentFiles: {
+          createMany: {
+            data: [
+              {
+                ...studyResultCard,
+                type: DocumentFileType.STUDY_RESULT_CARD,
+              },
+              {
+                ...proposalCompetitionSertification,
+                type: DocumentFileType.PROPOSAL_COMPETITION_CERTIFICATION,
+              },
+            ],
           },
         },
         student: {
@@ -167,10 +183,10 @@ export class InternshipService {
 
     if (!student) throw new NotFoundException('student not found');
 
-    const { publicUrl: internshipApplicationFileUrl } =
-      await this.supabaseService.upload(internshipApplicationFile, 'documents');
-    const { publicUrl: internshipExtensionFileUrl } =
-      await this.supabaseService.upload(intershipExtensionFile, 'documents');
+    const [internshipApplication, internshipExtension] = await Promise.all([
+      this.supabaseService.upload(internshipApplicationFile, 'documents'),
+      this.supabaseService.upload(intershipExtensionFile, 'documents'),
+    ]);
 
     return await this.prismaService.document.create({
       data: {
@@ -185,8 +201,20 @@ export class InternshipService {
             startExtensionDatePeriod: new Date(startExtensionDatePeriod),
             finishExtensionDatePeriod: new Date(finishExtensionDatePeriod),
             reasonExtension,
-            internshipApplicationFileUrl,
-            internshipExtensionFileUrl,
+          },
+        },
+        documentFiles: {
+          createMany: {
+            data: [
+              {
+                ...internshipApplication,
+                type: DocumentFileType.INTERNSHIP_APPLICATION_FILE,
+              },
+              {
+                ...internshipExtension,
+                type: DocumentFileType.INTERNSHIP_EXTENSION_FILE,
+              },
+            ],
           },
         },
         student: {
@@ -217,8 +245,10 @@ export class InternshipService {
 
     if (!student) throw new NotFoundException('student not found');
 
-    const { publicUrl: supportingDocumentUrl } =
-      await this.supabaseService.upload(supportingDocumentFile, 'documents');
+    const supportingDocument = await this.supabaseService.upload(
+      supportingDocumentFile,
+      'documents',
+    );
 
     return await this.prismaService.document.create({
       data: {
@@ -228,7 +258,12 @@ export class InternshipService {
             agencyName,
             agencyAddress,
             cancellationReason,
-            supportingDocumentUrl,
+          },
+        },
+        documentFiles: {
+          create: {
+            ...supportingDocument,
+            type: DocumentFileType.SUPPORTING_DOCUMENT,
           },
         },
         student: {
@@ -240,24 +275,42 @@ export class InternshipService {
     });
   }
 
-  async updateStatus({
+  async upadateInternshipCompany({
+    documentId,
     status,
     rejectionReason,
-    documentId,
-  }: {
-    status: DocumentStatus;
-    rejectionReason?: string;
+    letterApprovalSupervisorFile,
+    coverLetterFile,
+  }: UpdateStatusDocumentDto & {
     documentId: string;
+    letterApprovalSupervisorFile: Express.Multer.File;
+    coverLetterFile: Express.Multer.File;
   }) {
-    if (status === DocumentStatus.DOCUMENT_REVISION && !rejectionReason)
-      throw new BadRequestException('Rejection reason must be provided');
+    const document = await this.getById(documentId);
 
-    await this.getById(documentId);
-    const document = await this.prismaService.document.update({
-      data: {
-        status,
-        rejectionReason,
-      },
+    await this.rejectDocument({ status, rejectionReason, documentId });
+
+    if (letterApprovalSupervisorFile) {
+      return await this.replaceDocumentFile({
+        documentId,
+        file: letterApprovalSupervisorFile,
+        type: DocumentFileType.LETTER_APPROVAL_SUPERVISOR,
+        nim: document.studentNim,
+      });
+    }
+
+    if (coverLetterFile) {
+      return await this.replaceDocumentFile({
+        documentId,
+        file: coverLetterFile,
+        type: DocumentFileType.COVER_LETTER,
+        nim: document.studentNim,
+      });
+    }
+  }
+
+  async getById(documentId: string) {
+    const document = await this.prismaService.document.findUnique({
       where: {
         documentId,
       },
@@ -267,20 +320,6 @@ export class InternshipService {
             nim: true,
           },
         },
-      },
-    });
-
-    await this.notificationService.sendNotificationToStudent({
-      nim: document.student.nim,
-    });
-
-    return document;
-  }
-
-  async getById(documentId: string) {
-    const document = await this.prismaService.document.findUnique({
-      where: {
-        documentId,
       },
     });
 
@@ -300,5 +339,91 @@ export class InternshipService {
         status: true,
       },
     });
+  }
+
+  private async rejectDocument({
+    status,
+    rejectionReason,
+    documentId,
+  }: {
+    status: string;
+    rejectionReason: string;
+    documentId: string;
+  }) {
+    if (status === DocumentStatus.DOCUMENT_REVISION) {
+      if (!rejectionReason)
+        throw new BadRequestException('Rejection reason must be provided');
+
+      const updatedDocument = await this.prismaService.document.update({
+        data: {
+          status: DocumentStatus.DOCUMENT_REVISION,
+          rejectionReason,
+        },
+        where: {
+          documentId,
+        },
+      });
+
+      await this.notificationService.sendNotificationToStudent({
+        nim: updatedDocument.studentNim,
+        title: 'Data not comply with provisions',
+        content: updatedDocument.rejectionReason,
+      });
+    }
+  }
+
+  private async replaceDocumentFile({
+    documentId,
+    file,
+    type,
+    signed = false,
+    nim,
+  }: {
+    documentId: string;
+    file: Express.Multer.File;
+    type: DocumentFileType;
+    signed?: boolean;
+    nim: string;
+  }) {
+    const existingFile = await this.prismaService.documentFile.findFirst({
+      where: {
+        documentId,
+        type,
+      },
+    });
+    if (existingFile) {
+      await Promise.all([
+        this.supabaseService.delete(existingFile.originalName, 'documents'),
+        this.prismaService.documentFile.delete({
+          where: {
+            fileId: existingFile.fileId,
+          },
+        }),
+      ]);
+    }
+
+    const { fileUrl, originalName } = await this.supabaseService.upload(
+      file,
+      'documents',
+    );
+
+    const document = await this.prismaService.documentFile.create({
+      data: {
+        documentId,
+        fileUrl,
+        originalName,
+        type,
+        signed,
+      },
+    });
+
+    if (signed) {
+      await this.notificationService.sendNotificationToStudent({
+        nim,
+        title: `Dokumen ${document.type} sudah ditandatangani`,
+        content: `Dokumen ${document.type} sudah ditandatangani dan tersedia.`,
+        fileUrl: fileUrl,
+      });
+    }
   }
 }

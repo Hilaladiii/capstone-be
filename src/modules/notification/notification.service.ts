@@ -41,10 +41,29 @@ export class NotificationService {
     );
   }
 
-  async sendNotificationToStudent<T>(data: T & { nim: string }) {
+  async sendNotificationToStudent({
+    nim,
+    ...rest
+  }: {
+    nim: string;
+    title: string;
+    content: string;
+    fileUrl?: string;
+  }) {
+    const notification = await this.prismaService.notification.create({
+      data: {
+        ...rest,
+        notificationReads: {
+          create: {
+            status: 'UNREAD',
+            studentNim: nim,
+          },
+        },
+      },
+    });
     this.notificationGateway.server
-      .to(`student_${data.nim}`)
-      .emit('notification:new', data);
+      .to(`student_${nim}`)
+      .emit('notification:new', notification);
   }
 
   async getNotifications(nim: string) {

@@ -16,7 +16,7 @@ export class SupabaseService {
   async upload(
     file: Express.Multer.File,
     bucket: string,
-  ): Promise<{ publicUrl: string }> {
+  ): Promise<{ fileUrl: string; originalName: string }> {
     try {
       const { error } = await this.supabaseClient.storage
         .from(bucket)
@@ -31,7 +31,10 @@ export class SupabaseService {
         .from(bucket)
         .getPublicUrl(file.originalname);
 
-      return data;
+      const originalName = file.originalname;
+      const fileUrl = data.publicUrl;
+
+      return { fileUrl, originalName };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }

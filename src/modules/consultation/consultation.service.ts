@@ -38,8 +38,9 @@ export class ConsultationService {
       },
     });
     await this.notificationService.sendNotificationToStudent({
-      consultation,
       nim: consultation.studentNim,
+      title: consultation.position,
+      content: consultation.note,
     });
     return consultation;
   }

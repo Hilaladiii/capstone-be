@@ -25,18 +25,18 @@ export class AnnouncementService {
     let fileUrl = null;
 
     if (data?.image) {
-      const { publicUrl } = await this.supabaseService.upload(
+      const { fileUrl } = await this.supabaseService.upload(
         data.image,
         'announcement-images',
       );
-      imageUrl = publicUrl;
+      imageUrl = fileUrl;
     }
     if (data?.file) {
-      const { publicUrl } = await this.supabaseService.upload(
+      const { fileUrl: file } = await this.supabaseService.upload(
         data.file,
         'announcement-files',
       );
-      fileUrl = publicUrl;
+      fileUrl = file;
     }
 
     const annoucement = await this.prismaService.announcement.create({
@@ -67,18 +67,18 @@ export class AnnouncementService {
     let urlPaylod: any = {};
 
     if (data?.image) {
-      const { publicUrl } = await this.supabaseService.upload(
+      const { fileUrl } = await this.supabaseService.upload(
         data.image,
         'announcement-images',
       );
-      urlPaylod.imageUrl = publicUrl;
+      urlPaylod.imageUrl = fileUrl;
     }
     if (data?.file) {
-      const { publicUrl } = await this.supabaseService.upload(
+      const { fileUrl } = await this.supabaseService.upload(
         data.file,
         'announcement-files',
       );
-      urlPaylod.fileUrl = publicUrl;
+      urlPaylod.fileUrl = fileUrl;
     }
 
     return await this.prismaService.announcement.update({

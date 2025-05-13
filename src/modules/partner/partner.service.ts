@@ -28,7 +28,7 @@ export class PartnerService {
 
     if (partner) throw new BadRequestException('Partner already exists');
 
-    const { publicUrl: logoUrl } = await this.supabaseService.upload(
+    const { fileUrl: logoUrl } = await this.supabaseService.upload(
       logo,
       'partners',
     );
@@ -115,8 +115,8 @@ export class PartnerService {
     let updateLogo: any = {};
 
     if (logo) {
-      const { publicUrl } = await this.supabaseService.upload(logo, 'partners');
-      updateLogo.logoUrl = publicUrl;
+      const { fileUrl } = await this.supabaseService.upload(logo, 'partners');
+      updateLogo.logoUrl = fileUrl;
     }
 
     return await this.prismaService.partner.update({

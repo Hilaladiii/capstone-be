@@ -24,10 +24,14 @@ import { CreateInternshipExtensionDto } from './dto/create-internship-extension.
 import { CreateInternshipCancellationDto } from './dto/create-internship-cancellation.dto';
 import { UpdateStatusDocumentDto } from './dto/update-status-document.dto';
 import { CreateInternshipApplicationCompetitionDto } from './dto/create-internship-application-competition';
+import { SupabaseService } from '../supabase/supabase.service';
 
 @Controller('internship')
 export class InternshipController {
-  constructor(private internshipService: InternshipService) {}
+  constructor(
+    private internshipService: InternshipService,
+    private supabaseService: SupabaseService,
+  ) {}
 
   @Post('application/company')
   @Message('Success create internship application')
@@ -139,16 +143,35 @@ export class InternshipController {
     });
   }
 
-  @Patch(':id/status')
-  @Message('Success update status document')
-  @Auth(Role.ACADEMIC, Role.HEAD_STUDY_PROGRAM)
-  async updateSuccessStatus(
+  @Patch(':id/company')
+  @Message('Success update status document application company')
+  @Auth()
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      {
+        name: 'letterApprovalSupervisorFile',
+      },
+      {
+        name: 'coverLetterFile',
+      },
+    ]),
+  )
+  async updateInternshipCompany(
     @Param('id') documentId: string,
     @Body() updateStatusDocumentDto: UpdateStatusDocumentDto,
+    @UploadedFiles()
+    files: {
+      letterApprovalSupervisorFile: Express.Multer.File;
+      coverLetterFile: Express.Multer.File;
+    },
   ) {
-    return await this.internshipService.updateStatus({
+    const letterApprovalSupervisorFile = files.letterApprovalSupervisorFile;
+    const coverLetterFile = files.coverLetterFile;
+    return await this.internshipService.upadateInternshipCompany({
       documentId,
       ...updateStatusDocumentDto,
+      letterApprovalSupervisorFile,
+      coverLetterFile,
     });
   }
 
