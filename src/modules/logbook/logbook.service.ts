@@ -20,6 +20,7 @@ export class LogbookService {
   async create({
     nim,
     file,
+    date,
     ...rest
   }: CreateLogbookDto & {
     nim: string;
@@ -38,9 +39,10 @@ export class LogbookService {
 
     return await this.prismaService.logbook.create({
       data: {
+        date: new Date(date),
+        fileOriginalName: file.originalname,
+        fileUrl,
         ...rest,
-        imageOriginalName: file.originalname,
-        imageUrl: fileUrl,
         student: {
           connect: {
             nim,
@@ -63,12 +65,12 @@ export class LogbookService {
 
     if (!logbook) throw new NotFoundException('logbook not found');
 
-    let imageData: any = {};
+    let fileData: any = {};
     if (file) {
-      await this.supabaseService.delete(logbook.imageOriginalName, 'logbook');
+      await this.supabaseService.delete(logbook.fileOriginalName, 'logbook');
       const { fileUrl } = await this.supabaseService.upload(file, 'logbook');
-      imageData.imageUrl = fileUrl;
-      imageData.imageOriginalName = file.originalname;
+      fileData.fileUrl = fileUrl;
+      fileData.fileOriginalName = file.originalname;
     }
 
     return await this.prismaService.logbook.update({
@@ -77,7 +79,7 @@ export class LogbookService {
       },
       data: {
         ...updateLogbookDto,
-        ...imageData,
+        ...fileData,
       },
     });
   }
@@ -91,7 +93,7 @@ export class LogbookService {
 
     if (!logbook) throw new NotFoundException('logbook not found');
 
-    await this.supabaseService.delete(logbook.imageOriginalName, 'logbook');
+    await this.supabaseService.delete(logbook.fileOriginalName, 'logbook');
     return await this.prismaService.logbook.delete({
       where: {
         logbookId,

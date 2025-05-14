@@ -127,9 +127,10 @@ model NotificationRead{
 model Logbook{
   logbookId String @id @default(uuid())
   description String
-  imageUrl String
-  imageOriginalName String
+  fileUrl String
+  fileOriginalName String
   duration Int
+  date DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime?
   note String? @db.Text

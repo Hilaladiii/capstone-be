@@ -10,4 +10,8 @@ export class CreateLogbookDto {
   @Type(() => Number)
   @IsNumber()
   duration: number;
+
+  @IsNotEmpty()
+  @IsString()
+  date: string;
 }
