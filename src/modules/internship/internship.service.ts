@@ -289,6 +289,9 @@ export class InternshipService {
     studyResultCardFile: Express.Multer.File;
   }) {
     const document = await this.getById(documentId);
+    if (!document?.internshipApplicationCompany) {
+      throw new NotFoundException('Document not found');
+    }
 
     await this.rejectDocument({ status, rejectionReason, documentId });
 
@@ -321,6 +324,7 @@ export class InternshipService {
         status,
       });
     }
+    await this.updateStatus(documentId, status);
   }
 
   async updateInternshipCompetition({
@@ -339,6 +343,9 @@ export class InternshipService {
     proposalCompetitionSertificationFile: Express.Multer.File;
   }) {
     const document = await this.getById(documentId);
+    if (!document?.internshipApplicationCompetition) {
+      throw new NotFoundException('Document not found');
+    }
 
     await this.rejectDocument({ status, rejectionReason, documentId });
 
@@ -381,6 +388,7 @@ export class InternshipService {
         status,
       });
     }
+    await this.updateStatus(documentId, status);
   }
 
   async updateInternshipExtension({
@@ -395,6 +403,9 @@ export class InternshipService {
     internshipExtensionFile: Express.Multer.File;
   }) {
     const document = await this.getById(documentId);
+    if (!document?.internshipExtension) {
+      throw new NotFoundException('Document not found');
+    }
 
     await this.rejectDocument({ status, rejectionReason, documentId });
 
@@ -417,6 +428,8 @@ export class InternshipService {
         status,
       });
     }
+
+    await this.updateStatus(documentId, status);
   }
 
   async updateInternshipCancellation({
@@ -429,6 +442,9 @@ export class InternshipService {
     supportingDocument: Express.Multer.File;
   }) {
     const document = await this.getById(documentId);
+    if (!document?.internshipCancellation) {
+      throw new NotFoundException('Document not found');
+    }
 
     await this.rejectDocument({ status, rejectionReason, documentId });
 
@@ -441,6 +457,8 @@ export class InternshipService {
         status,
       });
     }
+
+    await this.updateStatus(documentId, status);
   }
 
   async getById(documentId: string) {
@@ -454,12 +472,44 @@ export class InternshipService {
             nim: true,
           },
         },
+        internshipApplicationCompany: {
+          select: {
+            documentId: true,
+          },
+        },
+        internshipApplicationCompetition: {
+          select: {
+            documentId: true,
+          },
+        },
+        internshipExtension: {
+          select: {
+            documentId: true,
+          },
+        },
+        internshipCancellation: {
+          select: {
+            documentId: true,
+          },
+        },
       },
     });
 
     if (!document) throw new NotFoundException('Document not found');
 
     return document;
+  }
+
+  async updateStatus(documentId: string, status: DocumentStatus) {
+    await this.getById(documentId);
+    await this.prismaService.document.update({
+      data: {
+        status,
+      },
+      where: {
+        documentId,
+      },
+    });
   }
 
   async getStatus(nim: string) {
