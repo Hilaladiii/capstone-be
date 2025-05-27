@@ -9,8 +9,7 @@ services:
       - mysql
     networks:
       - capstone-network
-    restart:
-      - always
+    restart: always
 
   mysql:
     container_name: mysql_db
@@ -29,8 +28,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    restart:
-      - always
+    restart: always
 
 volumes:
   capstone-data:
