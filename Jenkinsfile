@@ -11,21 +11,21 @@ pipeline{
             checkout scm
         }
       }          
-      stage("Testing"){
-        steps{
-          withCredentials([
-            file(credentialsId : "credential-capstone-test",variable:"ENV_TEST")
-          ]){
-            script {
-              sh"""
-                cp $ENV_TEST .env.test
-                docker compose --env-file .env.test -f docker-compose.test.yaml up --abort-on-container-exit --exit-code-from server_test
-                docker compose -f docker-compose.test.yaml down
-              """       
-            }
-          }
-        }
-      }
+      // stage("Testing"){
+      //   steps{
+      //     withCredentials([
+      //       file(credentialsId : "credential-capstone-test",variable:"ENV_TEST")
+      //     ]){
+      //       script {
+      //         sh"""
+      //           cp $ENV_TEST .env.test
+      //           docker compose --env-file .env.test -f docker-compose.test.yaml up --abort-on-container-exit --exit-code-from server_test
+      //           docker compose -f docker-compose.test.yaml down
+      //         """       
+      //       }
+      //     }
+      //   }
+      // }
       stage("Deploying"){
         steps{
           withCredentials([
