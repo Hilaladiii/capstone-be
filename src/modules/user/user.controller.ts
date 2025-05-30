@@ -1,4 +1,4 @@
-import { Body, Controller, Put } from '@nestjs/common';
+import { Body, Controller, Get, Put } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { Auth } from 'src/commons/decorators/auth.decorator';
@@ -17,5 +17,12 @@ export class UserController {
     @Body() changePasswordDto: ChangePasswordDto,
   ) {
     await this.userService.changePassword({ ...changePasswordDto, userId });
+  }
+
+  @Get()
+  @Message('Success get profile')
+  @Auth()
+  async getProfile(@GetCurrentUser('sub') userId: string) {
+    return await this.userService.getProfile(userId);
   }
 }

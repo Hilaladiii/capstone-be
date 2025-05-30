@@ -37,4 +37,58 @@ export class UserService {
       },
     });
   }
+
+  async getProfile(userId: string) {
+    const roleMapping = {
+      student: ['nim', 'sks', 'year'],
+      lecturer: ['nip'],
+      academic: ['nip'],
+    };
+
+    const user = await this.prismaService.user.findUnique({
+      where: { userId },
+      select: {
+        userId: true,
+        fullname: true,
+        email: true,
+        student: {
+          select: {
+            nim: true,
+            sks: true,
+            year: true,
+          },
+        },
+        lecturer: {
+          select: {
+            nip: true,
+          },
+        },
+        academic: {
+          select: {
+            nip: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Invalid user id');
+    }
+
+    const { userId: id, fullname, email } = user;
+
+    for (const role of Object.keys(roleMapping)) {
+      if (user[role]) {
+        return {
+          role,
+          userId: id,
+          fullname,
+          email,
+          [role]: user[role],
+        };
+      }
+    }
+
+    throw new BadRequestException('User role not found');
+  }
 }
