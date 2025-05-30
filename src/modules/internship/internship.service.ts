@@ -279,21 +279,7 @@ export class InternshipService {
   async getInternship(type: InternshipType) {
     const include: any = {
       documentFiles: true,
-      student: {
-        select: {
-          nim: true,
-          sks: true,
-          year: true,
-          user: {
-            select: {
-              email: true,
-              fullname: true,
-            },
-          },
-        },
-      },
     };
-
     const where: any = {};
 
     switch (type) {
