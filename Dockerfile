@@ -32,5 +32,6 @@ COPY --from=builder /usr/src/app/ecosystem.config.js ./ecosystem.config.js
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "npx prisma db push && pm2-runtime ecosystem.config.js"]
+CMD ["sh", "-c", "./wait-for-it.sh mysql_db:3306 -- npx prisma db push && pm2-runtime ecosystem.config.js"]
+
 

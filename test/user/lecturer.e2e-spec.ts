@@ -4,38 +4,22 @@ import * as request from 'supertest';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
 import { LECTURER_TEST_PAYLOAD, loginHelper } from 'test/helper';
 import { LecturerType, StudentType } from 'src/commons/types/user.type';
+import { JwtService } from '@nestjs/jwt';
+import { JwtLecturerClaim } from 'src/commons/types/jwt.type';
 
 describe('Lecturer e2e', () => {
   let app: INestApplication;
   let prismaService: PrismaService;
+  let jwtService: JwtService;
   let headLecturerToken: string;
-  let lecturer: LecturerType;
+  let lecturer: JwtLecturerClaim;
   let student: StudentType;
   let studentToken: string;
 
   beforeAll(async () => {
     app = await createTestApp();
     prismaService = app.get(PrismaService);
-
-    lecturer = await prismaService.user.findFirst({
-      where: {
-        userRoles: {
-          some: {
-            role: {
-              role_name: 'LECTURER',
-            },
-          },
-          none: {
-            role: {
-              role_name: 'HEAD_LECTURER',
-            },
-          },
-        },
-      },
-      include: {
-        lecturer: true,
-      },
-    });
+    jwtService = app.get(JwtService);
 
     const resHeadLecturer = await loginHelper(app, {
       email: 'dosen@gmail.com',
@@ -43,6 +27,9 @@ describe('Lecturer e2e', () => {
     });
 
     headLecturerToken = resHeadLecturer.body.data.token;
+    const decodedTokenLecturer = await jwtService.verify(headLecturerToken);
+
+    lecturer = decodedTokenLecturer as JwtLecturerClaim;
 
     const resStudent = await loginHelper(app, {
       email: 'student@gmail.com',
@@ -61,12 +48,12 @@ describe('Lecturer e2e', () => {
   afterAll(async () => {
     await prismaService.student.update({
       where: {
-        user_id: student.user_id,
+        userId: student.userId,
       },
       data: {
         lecturer: {
           disconnect: {
-            nip: lecturer.lecturer.nip,
+            nip: lecturer.nip,
           },
         },
       },
@@ -119,7 +106,7 @@ describe('Lecturer e2e', () => {
         .post(`/user/lecturer/student/${student.student.nim}/supervisor`)
         .set('Authorization', `Bearer ${headLecturerToken}`)
         .send({
-          nip: lecturer.lecturer.nip,
+          nip: lecturer.nip,
         });
 
       expect(res.status).toBe(201);
@@ -135,7 +122,7 @@ describe('Lecturer e2e', () => {
         .post(`/user/lecturer/student/${student.student.nim}/supervisor`)
         .set('Authorization', `Bearer ${studentToken}`)
         .send({
-          nip: lecturer.lecturer.nip,
+          nip: lecturer.nip,
         });
 
       expect(res.status).toBe(403);

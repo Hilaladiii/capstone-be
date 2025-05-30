@@ -9,7 +9,7 @@ describe('Announcement e2e', () => {
   let prismaService: PrismaService;
   let academicToken: string;
   let studentToken: string;
-  let annoucement_id: string;
+  let announcementId: string;
 
   beforeAll(async () => {
     app = await createTestApp();
@@ -30,7 +30,7 @@ describe('Announcement e2e', () => {
   afterAll(async () => {
     await prismaService.announcement.delete({
       where: {
-        annoucement_id,
+        announcementId,
       },
     });
   });
@@ -45,7 +45,7 @@ describe('Announcement e2e', () => {
         .attach('image', ANNOUNCEMENT_TEST_PAYLOAD.image)
         .attach('file', ANNOUNCEMENT_TEST_PAYLOAD.file);
 
-      annoucement_id = res.body.data.annoucement_id;
+      announcementId = res.body.data.announcementId;
 
       expect(res.status).toBe(201);
       expect(res.body).toHaveProperty('message', 'Success create announcement');
