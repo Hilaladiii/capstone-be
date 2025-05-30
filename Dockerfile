@@ -16,6 +16,10 @@ RUN npx prisma generate
 
 RUN npm run build
 
+COPY wait-for-it.sh ./
+
+RUN chmod +x wait-for-it.sh
+
 FROM node:20.18-alpine
 
 RUN apk add --no-cache libc6-compat openssl
@@ -29,9 +33,10 @@ COPY --from=builder /usr/src/app/dist ./dist
 COPY --from=builder /usr/src/app/prisma ./prisma
 COPY --from=builder /usr/src/app/package*.json ./
 COPY --from=builder /usr/src/app/ecosystem.config.js ./ecosystem.config.js
+COPY --from=builder /usr/src/app/wait-for-it.sh ./wait-for-it.sh
+
+RUN chmod +x wait-for-it.sh
 
 EXPOSE 8000
 
 CMD ["sh", "-c", "./wait-for-it.sh mysql_db:3306 -- npx prisma db push && pm2-runtime ecosystem.config.js"]
-
-
