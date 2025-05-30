@@ -1,5 +1,6 @@
-enum InternshipType {
-  APPLICATION = 'APPLICATION',
+export enum InternshipType {
+  COMPANY = 'COMPANY',
+  COMPETITION = 'COMPETITION',
   EXTENSION = 'EXTENSION',
   CANCELLATION = 'CANCELLATION',
 }

@@ -4,8 +4,10 @@ import {
   Controller,
   Get,
   Param,
+  ParseEnumPipe,
   Patch,
   Post,
+  Query,
   UploadedFile,
   UploadedFiles,
   UseInterceptors,
@@ -25,6 +27,7 @@ import { CreateInternshipCancellationDto } from './dto/create-internship-cancell
 import { UpdateStatusDocumentDto } from './dto/update-status-document.dto';
 import { CreateInternshipApplicationCompetitionDto } from './dto/create-internship-application-competition';
 import { SupabaseService } from '../supabase/supabase.service';
+import { InternshipType } from 'src/commons/types/internship.type';
 
 @Controller('internship')
 export class InternshipController {
@@ -141,6 +144,15 @@ export class InternshipController {
       studentNimApply,
       supportingDocumentFile,
     });
+  }
+
+  @Get()
+  @Message('Success get internship')
+  @Auth(Role.ACADEMIC, Role.HEAD_DEPARTEMENT, Role.HEAD_STUDY_PROGRAM)
+  async getInternship(
+    @Query('type', new ParseEnumPipe(InternshipType)) type: InternshipType,
+  ) {
+    return this.internshipService.getInternship(type);
   }
 
   @Patch(':id/company')

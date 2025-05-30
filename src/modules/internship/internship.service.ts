@@ -12,6 +12,7 @@ import { CreateInternshipExtensionDto } from './dto/create-internship-extension.
 import { CreateInternshipCancellationDto } from './dto/create-internship-cancellation.dto';
 import { CreateInternshipApplicationCompetitionDto } from './dto/create-internship-application-competition';
 import { UpdateStatusDocumentDto } from './dto/update-status-document.dto';
+import { InternshipType } from 'src/commons/types/internship.type';
 
 @Injectable()
 export class InternshipService {
@@ -272,6 +273,53 @@ export class InternshipService {
           },
         },
       },
+    });
+  }
+
+  async getInternship(type: InternshipType) {
+    const include: any = {
+      documentFiles: true,
+      student: {
+        select: {
+          nim: true,
+          sks: true,
+          year: true,
+          user: {
+            select: {
+              email: true,
+              fullname: true,
+            },
+          },
+        },
+      },
+    };
+
+    const where: any = {};
+
+    switch (type) {
+      case InternshipType.COMPANY:
+        include.internshipApplicationCompany = true;
+        where.internshipApplicationCompany = { isNot: null };
+        break;
+      case InternshipType.COMPETITION:
+        include.internshipApplicationCompetition = true;
+        where.internshipApplicationCompetition = { isNot: null };
+        break;
+      case InternshipType.EXTENSION:
+        include.internshipExtension = true;
+        where.internshipExtension = { isNot: null };
+        break;
+      case InternshipType.CANCELLATION:
+        include.internshipCancellation = true;
+        where.internshipCancellation = { isNot: null };
+        break;
+      default:
+        break;
+    }
+
+    return this.prismaService.document.findMany({
+      where,
+      include,
     });
   }
 
