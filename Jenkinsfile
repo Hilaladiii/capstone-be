@@ -34,9 +34,10 @@ pipeline{
             script{
               try{
                 sh """                 
-                 cp $ENV .env
-                 docker compose down
-                 docker compose --env-file .env up -d
+                  cp $ENV .env
+                  docker compose down
+                  docker compose build --no-cache
+                  docker compose --env-file .env up -d
                 """
               }
               catch(Exception e){
