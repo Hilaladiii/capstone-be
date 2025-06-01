@@ -1,8 +1,11 @@
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, Matches } from 'class-validator';
 
 export class CreateUserDto {
   @IsNotEmpty()
   @IsEmail()
+  @Matches(/^[\w-.]+@(student\.ub\.ac\.id|ub\.ac\.id)$/, {
+    message: 'Email must be from @student.ub.ac.id or @ub.ac.id',
+  })
   email: string;
 
   @IsNotEmpty()
