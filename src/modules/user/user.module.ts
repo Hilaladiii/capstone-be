@@ -5,10 +5,17 @@ import { StudentModule } from './student/student.module';
 import { LecturerModule } from './lecturer/lecturer.module';
 import { AcademicModule } from './academic/academic.module';
 import { RoleModule } from './role/role.module';
+import { SupabaseModule } from '../supabase/supabase.module';
 
 @Module({
+  imports: [
+    StudentModule,
+    LecturerModule,
+    AcademicModule,
+    RoleModule,
+    SupabaseModule,
+  ],
   providers: [UserService],
   controllers: [UserController],
-  imports: [StudentModule, LecturerModule, AcademicModule, RoleModule],
 })
 export class UserModule {}

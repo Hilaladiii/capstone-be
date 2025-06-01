@@ -6,10 +6,15 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import * as bcryptjs from 'bcryptjs';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { SupabaseService } from '../supabase/supabase.service';
 
 @Injectable()
 export class UserService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private supabaseService: SupabaseService,
+  ) {}
 
   async changePassword({
     password,
@@ -90,5 +95,43 @@ export class UserService {
     }
 
     throw new BadRequestException('User role not found');
+  }
+
+  async updateProfile({
+    userId,
+    sks,
+    year,
+    image,
+  }: UpdateUserDto & { userId: string; image: Express.Multer.File }) {
+    const user = await this.prismaService.user.findUnique({
+      where: {
+        userId,
+      },
+    });
+
+    if (!user) throw new BadRequestException('Invalid user id');
+
+    let updateProfileImageUrl = null;
+    if (image) {
+      const { fileUrl } = await this.supabaseService.upload(image, 'user');
+      updateProfileImageUrl = fileUrl;
+    }
+
+    await this.prismaService.user.update({
+      data: {
+        profileImageUrl: updateProfileImageUrl,
+        student: {
+          update: {
+            data: {
+              sks,
+              year,
+            },
+          },
+        },
+      },
+      where: {
+        userId,
+      },
+    });
   }
 }
