@@ -16,6 +16,13 @@ export class NotificationController {
     return await this.notificationService.getNotifications(nim);
   }
 
+  @Get(':id')
+  @Message('Success get notification')
+  @Auth(Role.STUDENT)
+  async getNotificationById(@Param('id') id: string) {
+    return await this.notificationService.getNotificationById(id);
+  }
+
   @Patch('read')
   @Message('Success read notifications')
   @Auth(Role.STUDENT)

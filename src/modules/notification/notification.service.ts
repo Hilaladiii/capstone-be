@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { NotificationGateway } from './notification.gateway';
 import { Announcement } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
@@ -89,6 +89,24 @@ export class NotificationService {
       content: notification.content,
       ...rest,
     }));
+  }
+
+  async getNotificationById(id: string) {
+    const notification = await this.prismaService.notification.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+        content: true,
+        title: true,
+        fileUrl: true,
+      },
+    });
+
+    if (!notification) throw new BadRequestException('notification id invalid');
+
+    return notification;
   }
 
   async readNotifications(nim: string) {
